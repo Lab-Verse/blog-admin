@@ -26,8 +26,12 @@ export default function CategoriesPage() {
   };
 
   const handleDelete = async (category: Category) => {
-    if (confirm('Are you sure you want to delete this category?')) {
-      await deleteCategory(category.id);
+    try {
+      await deleteCategory(category.id).unwrap();
+      alert('Category deleted successfully!');
+    } catch (error: any) {
+      console.error('Delete error:', error);
+      alert('Failed to delete category: ' + (error?.data?.message || error.message));
     }
   };
 

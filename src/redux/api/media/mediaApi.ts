@@ -9,19 +9,26 @@ import type {
   UploadMediaPayload,
 } from '../../types/media/media.types';
 
+const getMediaItems = (
+  result?: PaginatedMediaResponse | Media[],
+): Media[] => {
+  if (!result) return [];
+  return Array.isArray(result) ? result : result.items ?? [];
+};
+
 export const mediaApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // GET /media
-    getMedia: builder.query<PaginatedMediaResponse, GetMediaQuery | void>({
+    getMedia: builder.query<PaginatedMediaResponse | Media[], GetMediaQuery | void>({
       query: (params) => ({
         url: '/media',
         method: 'GET',
         params: params ?? undefined,
       }),
       providesTags: (result) =>
-        result
+        getMediaItems(result).length > 0
           ? [
-              ...result.items.map((item: Media) => ({
+              ...getMediaItems(result).map((item: Media) => ({
                 type: 'Media' as const,
                 id: item.id,
               })),

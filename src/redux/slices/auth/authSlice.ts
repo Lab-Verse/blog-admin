@@ -58,12 +58,12 @@ const authSlice = createSlice({
         const data = payload.data;
         if (data) {
           state.user = data.user;
-          state.accessToken = data.tokens.accessToken;
-          state.refreshToken = data.tokens.refreshToken ?? null;
+          state.accessToken = data.accessToken;
+          state.refreshToken = data.refreshToken ?? null;
           state.isAuthenticated = true;
-          Cookies.set('accessToken', data.tokens.accessToken, { expires: 7 });
-          if (data.tokens.refreshToken) {
-            Cookies.set('refreshToken', data.tokens.refreshToken, { expires: 30 });
+          Cookies.set('accessToken', data.accessToken, { expires: 7 });
+          if (data.refreshToken) {
+            Cookies.set('refreshToken', data.refreshToken, { expires: 30 });
           }
         }
         state.isLoading = false;

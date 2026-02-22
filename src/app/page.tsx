@@ -1,34 +1,14 @@
 'use client';
 
-import DashboardComponent from '@/components/dashboard/DashboardComponent';
-import {
-  useGetDashboardStatsQuery,
-  useGetRecentActivityQuery,
-  useGetDashboardDataQuery
-} from '@/redux/api/dashboard/dashboardApi';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
-export default function Dashboard() {
-  const { data: stats, isLoading: statsLoading } = useGetDashboardStatsQuery(undefined, {
-    pollingInterval: 30000,
-    refetchOnMountOrArgChange: true,
-  });
+export default function Home() {
+  const router = useRouter();
 
-  const { data: activity, isLoading: activityLoading } = useGetRecentActivityQuery({ limit: 5 }, {
-    pollingInterval: 30000,
-  });
+  useEffect(() => {
+    router.push('/auth/login');
+  }, [router]);
 
-  const { data: dashboardData, isLoading: dataLoading } = useGetDashboardDataQuery({ timeRange: '7d' }, {
-    pollingInterval: 60000,
-  });
-
-  const isLoading = statsLoading || activityLoading || dataLoading;
-
-  return (
-    <DashboardComponent
-      stats={stats}
-      activity={activity}
-      isLoading={isLoading}
-    />
-  );
+  return null;
 }
-

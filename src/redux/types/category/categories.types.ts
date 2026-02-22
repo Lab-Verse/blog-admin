@@ -9,15 +9,13 @@ export enum CategoryStatus {
 export interface Category {
   id: string;
   name: string;
-  slug?: string;
-  description?: string | null;
-  color?: string;
-  iconUrl?: string;
-  isActive: boolean;
-  parentId?: string | null;
-  postCount?: number;
-  createdAt?: string;
-  updatedAt?: string;
+  slug: string;
+  parent_id?: string | null;
+  posts_count: number;
+  followers_count: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface PaginatedCategoriesResponse {
@@ -37,21 +35,15 @@ export interface GetCategoriesQuery {
 export interface CreateCategoryDto {
   name: string;
   slug?: string;
-  description?: string;
-  color?: string;
-  iconUrl?: string;
-  parentId?: string | null;
-  isActive?: boolean;
+  parent_id?: string | null;
+  is_active?: boolean;
 }
 
 export interface UpdateCategoryDto {
   name?: string;
   slug?: string;
-  description?: string | null;
-  color?: string;
-  iconUrl?: string;
-  parentId?: string | null;
-  isActive?: boolean;
+  parent_id?: string | null;
+  is_active?: boolean;
 }
 
 export interface CategoriesState {

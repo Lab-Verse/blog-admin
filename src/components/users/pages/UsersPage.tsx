@@ -27,7 +27,8 @@ export default function UsersPage({
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredUsers = users.filter((user) =>
-    user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.display_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -117,13 +118,13 @@ export default function UsersPage({
                               <Image className="h-10 w-10 rounded-full object-cover ring-2 ring-white shadow-sm" src={user.avatarUrl} alt={user.name || 'User avatar'} width={40} height={40} />
                             ) : (
                               <div className="h-10 w-10 rounded-full bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold shadow-sm">
-                                {user.name?.charAt(0).toUpperCase() || 'U'}
+                                {user.username?.charAt(0).toUpperCase() || 'U'}
                               </div>
                             )}
                           </div>
                           <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900 group-hover:text-blue-600 transition-colors">
-                              {user.name || 'Unknown User'}
+                              {user.display_name || user.username || 'Unknown User'}
                             </div>
                             <div className="text-sm text-gray-500">{user.email}</div>
                           </div>
@@ -138,7 +139,7 @@ export default function UsersPage({
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '-'}
+                        {user.created_at ? new Date(user.created_at).toLocaleDateString() : '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>

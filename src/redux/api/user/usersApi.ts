@@ -116,14 +116,14 @@ export const usersApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // POST /users/:id/profile-picture (file upload)
+    // POST /users/:id/profile/upload (file upload)
     uploadProfilePicture: builder.mutation<UserProfile, UploadProfilePicturePayload>({
       query: ({ id, file }) => {
         const formData = new FormData();
         formData.append('file', file);
 
         return {
-          url: `/users/${id}/profile-picture`,
+          url: `/users/${id}/profile/upload`,
           method: 'POST',
           body: formData,
         };

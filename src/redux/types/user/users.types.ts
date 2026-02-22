@@ -10,31 +10,35 @@ export type UserRole = 'admin' | 'user' | 'manager' | string;
 
 export interface UserProfile {
   id: string;
-  userId: string;
-  firstName?: string;
-  lastName?: string;
-  phone?: string;
-  address?: string;
-  city?: string;
-  country?: string;
-  avatarUrl?: string;
+  user_id: string;
+  first_name?: string;
+  last_name?: string;
   bio?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  profile_picture?: string;
+  phone?: string;
+  location?: string;
+  website_url?: string;
+  company?: string;
+  job_title?: string;
+  posts_count?: number;
+  followers_count?: number;
+  following_count?: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface User {
   id: string;
   email: string;
-  name: string;
-  phone?: string;
-  avatarUrl?: string;
+  username: string;
+  display_name?: string;
+  login?: string;
   role?: UserRole;
-  roleId?: string;
+  role_id?: string;
   status: UserStatus;
   profile?: UserProfile | null;
-  createdAt?: string;
-  updatedAt?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface PaginatedUsersResponse {
@@ -53,34 +57,35 @@ export interface GetUsersQuery {
 }
 
 export interface CreateUserDto {
-  name: string;
+  username: string;
   email: string;
   password: string;
-  phone?: string;
+  display_name?: string;
   role?: string;
-  roleId?: string;
+  role_id?: string;
   status?: UserStatus;
 }
 
 export interface UpdateUserDto {
-  name?: string;
+  username?: string;
   email?: string;
   password?: string;
-  phone?: string;
+  display_name?: string;
   role?: string;
-  roleId?: string;
+  role_id?: string;
   status?: UserStatus;
 }
 
 export interface CreateUserProfileDto {
-  userId?: string; // backend will usually infer from :id param
-  firstName?: string;
-  lastName?: string;
-  phone?: string;
-  address?: string;
-  city?: string;
-  country?: string;
+  user_id?: string;
+  first_name?: string;
+  last_name?: string;
   bio?: string;
+  phone?: string;
+  location?: string;
+  website_url?: string;
+  company?: string;
+  job_title?: string;
 }
 
 // Use Partial<CreateUserProfileDto> directly instead of UpdateUserProfileDto

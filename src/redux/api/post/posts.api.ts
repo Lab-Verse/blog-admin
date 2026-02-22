@@ -43,11 +43,12 @@ export const postsApi = baseApi.injectEndpoints({
     }),
 
     /** Create post */
-    createPost: builder.mutation<Post, CreatePostRequest>({
+    createPost: builder.mutation<Post, FormData | CreatePostRequest>({
       query: (body) => ({
         url: '/posts',
         method: 'POST',
         body,
+        formData: body instanceof FormData,
       }),
       invalidatesTags: [{ type: 'Post', id: 'LIST' }],
     }),

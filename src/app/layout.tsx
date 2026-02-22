@@ -7,6 +7,8 @@ import { store } from '../redux/store';
 import { useState } from 'react';
 import SideNavbar from '../components/layout/SideNavbar';
 import Navbar from '../components/common/Navbar';
+import { Toaster } from 'sonner';
+import AuthInitializer from '../components/auth/AuthInitializer';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,6 +24,8 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <Provider store={store}>
+          <AuthInitializer />
+          <Toaster position="top-right" richColors />
           <div className="flex h-screen bg-secondary-50 overflow-hidden">
             <SideNavbar />
             <div className="flex-1 flex flex-col overflow-hidden lg:ml-72">

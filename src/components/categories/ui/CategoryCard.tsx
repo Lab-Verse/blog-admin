@@ -1,26 +1,23 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
 import { Category } from '@/redux/types/category/categories.types'; 
 import CategoryStatusBadge from './CategoryStatusBadge';
 import { Card, CardContent } from '@/components/ui/card';
-
-// Extended category interface for display purposes
-interface ExtendedCategory extends Category {
-  color?: string;
-  postCount?: number;
-  iconUrl?: string;
-}
+import { FolderOpen, FileText, Users, Calendar } from 'lucide-react';
 
 interface CategoryCardProps {
-    category: ExtendedCategory;
-    onEdit: (category: ExtendedCategory) => void;
-    onDelete: (category: ExtendedCategory) => void;
-    onClick?: (category: ExtendedCategory) => void;
+    category: Category;
+    onEdit: (category: Category) => void;
+    onDelete: (category: Category) => void;
+    onClick?: (category: Category) => void;
 }
 
 export default function CategoryCard({ category, onEdit, onDelete, onClick }: CategoryCardProps) {
+    const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
+    const colorIndex = category.name.charCodeAt(0) % colors.length;
+    const categoryColor = colors[colorIndex];
+
     return (
         <div onClick={() => onClick?.(category)} className="cursor-pointer">
             <Card
@@ -29,42 +26,45 @@ export default function CategoryCard({ category, onEdit, onDelete, onClick }: Ca
                 {/* Color bar */}
                 <div
                     className="h-2 w-full"
-                    style={{ backgroundColor: category.color || '#3B82F6' }}
+                    style={{ backgroundColor: categoryColor }}
                 />
 
                 <CardContent className="p-5">
-                    <div className="flex items-start justify-between gap-3 mb-3">
-                        <div className="flex-1 min-w-0">
-                            <h3 className="text-lg font-bold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
-                                {category.name}
-                            </h3>
-                            <p className="text-sm text-gray-500 font-mono mt-0.5">/{category.slug}</p>
+                    <div className="flex items-start justify-between gap-3 mb-4">
+                        <div className="flex items-start gap-3 flex-1 min-w-0">
+                            <div 
+                                className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0"
+                                style={{ backgroundColor: `${categoryColor}15` }}
+                            >
+                                <FolderOpen className="w-6 h-6" style={{ color: categoryColor }} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <h3 className="text-lg font-bold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+                                    {category.name}
+                                </h3>
+                                <p className="text-xs text-gray-500 font-mono mt-0.5">/{category.slug}</p>
+                            </div>
                         </div>
-                        <CategoryStatusBadge isActive={category.isActive} />
+                        <CategoryStatusBadge isActive={category.is_active} />
                     </div>
 
-                    {category.description && (
-                        <p className="text-sm text-gray-600 line-clamp-2 mb-3">
-                            {category.description}
-                        </p>
-                    )}
+                    <div className="grid grid-cols-2 gap-3 mb-4">
+                        <div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 rounded-lg p-2">
+                            <FileText className="w-4 h-4 text-gray-400" />
+                            <span className="font-semibold">{category.posts_count || 0}</span>
+                            <span className="text-xs">posts</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 rounded-lg p-2">
+                            <Users className="w-4 h-4 text-gray-400" />
+                            <span className="font-semibold">{category.followers_count || 0}</span>
+                            <span className="text-xs">followers</span>
+                        </div>
+                    </div>
 
                     <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                        <div className="flex items-center gap-4 text-xs text-gray-500">
-                            {category.postCount !== undefined && (
-                                <div className="flex items-center gap-1">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                    </svg>
-                                    <span className="font-medium">{category.postCount}</span>
-                                    <span>posts</span>
-                                </div>
-                            )}
-                            {category.iconUrl && (
-                                <div className="flex items-center gap-1">
-                                    <Image src={category.iconUrl} alt="" width={16} height={16} className="w-4 h-4 object-contain" />
-                                </div>
-                            )}
+                        <div className="flex items-center gap-1 text-xs text-gray-500">
+                            <Calendar className="w-3 h-3" />
+                            <span>{new Date(category.created_at).toLocaleDateString()}</span>
                         </div>
 
                         <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">

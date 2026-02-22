@@ -61,17 +61,17 @@ export default function UserDetailsPage({
                 <Card className="lg:col-span-1 border-0 shadow-lg ring-1 ring-gray-200/50">
                     <CardContent className="pt-8 pb-8 flex flex-col items-center text-center">
                         <div className="relative mb-6">
-                            {user.avatarUrl ? (
+                            {user.profile?.profile_picture ? (
                                 <Image
-                                    src={user.avatarUrl}
-                                    alt={user.name || 'User avatar'}
+                                    src={user.profile.profile_picture}
+                                    alt={user.display_name || user.username}
                                     width={128}
                                     height={128}
                                     className="w-32 h-32 rounded-full object-cover ring-4 ring-white shadow-lg"
                                 />
                             ) : (
                                 <div className="w-32 h-32 rounded-full bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-4xl font-bold ring-4 ring-white shadow-lg">
-                                    {user.name?.charAt(0).toUpperCase() || 'U'}
+                                    {user.username?.charAt(0).toUpperCase() || 'U'}
                                 </div>
                             )}
                             <div className="absolute bottom-0 right-0">
@@ -79,7 +79,7 @@ export default function UserDetailsPage({
                             </div>
                         </div>
 
-                        <h2 className="text-2xl font-bold text-gray-900">{user.name}</h2>
+                        <h2 className="text-2xl font-bold text-gray-900">{user.display_name || user.username}</h2>
                         <p className="text-gray-500 font-medium mt-1">{user.role || 'User'}</p>
 
                         <div className="mt-6 w-full border-t border-gray-100 pt-6">
@@ -87,13 +87,13 @@ export default function UserDetailsPage({
                                 <div>
                                     <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold">Joined</p>
                                     <p className="text-sm font-medium text-gray-900 mt-1">
-                                        {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '-'}
+                                        {user.created_at ? new Date(user.created_at).toLocaleDateString() : '-'}
                                     </p>
                                 </div>
                                 <div>
                                     <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold">Last Active</p>
                                     <p className="text-sm font-medium text-gray-900 mt-1">
-                                        {user.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : '-'}
+                                        {user.updated_at ? new Date(user.updated_at).toLocaleDateString() : '-'}
                                     </p>
                                 </div>
                             </div>
@@ -120,32 +120,59 @@ export default function UserDetailsPage({
                                     </dd>
                                 </div>
                                 <div className="sm:col-span-1">
-                                    <dt className="text-sm font-medium text-gray-500">Phone Number</dt>
+                                    <dt className="text-sm font-medium text-gray-500">Username</dt>
                                     <dd className="mt-1 text-sm text-gray-900 flex items-center">
                                         <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                         </svg>
-                                        {user.phone || 'Not provided'}
+                                        {user.username}
                                     </dd>
                                 </div>
-                                <div className="sm:col-span-2">
-                                    <dt className="text-sm font-medium text-gray-500">Address</dt>
-                                    <dd className="mt-1 text-sm text-gray-900 flex items-start">
-                                        <svg className="w-4 h-4 mr-2 text-gray-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        </svg>
-                                        {user.profile?.address ? (
-                                            <span>
-                                                {user.profile.address}
-                                                <br />
-                                                {user.profile.city}, {user.profile.country}
-                                            </span>
-                                        ) : (
-                                            'No address provided'
-                                        )}
-                                    </dd>
-                                </div>
+                                {user.profile?.phone && (
+                                    <div className="sm:col-span-1">
+                                        <dt className="text-sm font-medium text-gray-500">Phone</dt>
+                                        <dd className="mt-1 text-sm text-gray-900 flex items-center">
+                                            <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                            </svg>
+                                            {user.profile.phone}
+                                        </dd>
+                                    </div>
+                                )}
+                                {user.profile?.location && (
+                                    <div className="sm:col-span-1">
+                                        <dt className="text-sm font-medium text-gray-500">Location</dt>
+                                        <dd className="mt-1 text-sm text-gray-900 flex items-center">
+                                            <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            </svg>
+                                            {user.profile.location}
+                                        </dd>
+                                    </div>
+                                )}
+                                {user.profile?.company && (
+                                    <div className="sm:col-span-1">
+                                        <dt className="text-sm font-medium text-gray-500">Company</dt>
+                                        <dd className="mt-1 text-sm text-gray-900">{user.profile.company}</dd>
+                                    </div>
+                                )}
+                                {user.profile?.job_title && (
+                                    <div className="sm:col-span-1">
+                                        <dt className="text-sm font-medium text-gray-500">Job Title</dt>
+                                        <dd className="mt-1 text-sm text-gray-900">{user.profile.job_title}</dd>
+                                    </div>
+                                )}
+                                {user.profile?.website_url && (
+                                    <div className="sm:col-span-2">
+                                        <dt className="text-sm font-medium text-gray-500">Website</dt>
+                                        <dd className="mt-1 text-sm text-blue-600 hover:underline">
+                                            <a href={user.profile.website_url} target="_blank" rel="noopener noreferrer">
+                                                {user.profile.website_url}
+                                            </a>
+                                        </dd>
+                                    </div>
+                                )}
                             </dl>
                         </CardContent>
                     </Card>

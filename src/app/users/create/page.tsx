@@ -13,23 +13,10 @@ const Page: React.FC = () => {
   const handleSubmit = async (data: CreateUserDto) => {
     try {
       console.log('Creating user with data:', data);
-      
-      // Temporary mock implementation until API is working
-      const mockUser = {
-        id: Date.now().toString(),
-        ...data,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-      
-      console.log('Mock user created:', mockUser);
-      alert('User created successfully! (Mock implementation)');
+      const result = await createUser(data).unwrap();
+      console.log('User created successfully:', result);
+      alert('User created successfully!');
       router.push('/users');
-      
-      // Uncomment when API is working:
-      // const result = await createUser(data).unwrap();
-      // console.log('User created successfully:', result);
-      
     } catch (error: any) {
       console.error('Failed to create user:', {
         error,

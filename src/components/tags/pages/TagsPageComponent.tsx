@@ -25,14 +25,12 @@ export default function TagsPageComponent({
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
     const filteredTags = tags.filter((tag) =>
-        tag.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        tag.description?.toLowerCase().includes(searchTerm.toLowerCase())
+        tag.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     // Calculate stats
     const totalTags = tags.length;
-    const activeTags = tags.filter(t => t.isActive).length;
-    const totalPosts = tags.reduce((sum, t) => sum + (t.postCount || 0), 0);
+    const totalPosts = tags.reduce((sum, t) => sum + (t.posts_count || 0), 0);
     const avgPosts = totalTags > 0 ? Math.round(totalPosts / totalTags) : 0;
 
     return (
@@ -74,10 +72,9 @@ export default function TagsPageComponent({
                 </div>
 
                 {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {[
                         { label: 'Total Tags', value: totalTags, icon: Hash, color: 'text-blue-600', bg: 'bg-blue-50' },
-                        { label: 'Active', value: activeTags, icon: TagIcon, color: 'text-emerald-600', bg: 'bg-emerald-50' },
                         { label: 'Total Posts', value: totalPosts, icon: TrendingUp, color: 'text-purple-600', bg: 'bg-purple-50' },
                         { label: 'Avg Posts/Tag', value: avgPosts, icon: Hash, color: 'text-orange-600', bg: 'bg-orange-50' },
                     ].map((stat, i) => (
@@ -138,40 +135,23 @@ export default function TagsPageComponent({
                                 <CardContent className={`p-6 ${viewMode === 'list' ? 'flex-1 flex items-center justify-between p-0' : ''}`}>
                                     <div className={`flex items-start justify-between ${viewMode === 'list' ? 'w-1/3' : 'mb-4'}`}>
                                         <div className="flex items-center gap-4">
-                                            <div
-                                                className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm transition-transform group-hover:scale-110 duration-300"
-                                                style={{ backgroundColor: `${tag.color}20` || '#e2e8f0' }}
-                                            >
-                                                <Hash className="w-5 h-5" style={{ color: tag.color || '#64748b' }} />
+                                            <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center shadow-sm transition-transform group-hover:scale-110 duration-300">
+                                                <Hash className="w-5 h-5 text-slate-600" />
                                             </div>
                                             <div>
                                                 <h3 className="font-bold text-lg text-slate-900 group-hover:text-primary-600 transition-colors">{tag.name}</h3>
                                                 <p className="text-sm text-slate-500">/{tag.slug}</p>
                                             </div>
                                         </div>
-                                        {viewMode === 'grid' && (
-                                            <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${tag.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>
-                                                {tag.isActive ? 'Active' : 'Inactive'}
-                                            </span>
-                                        )}
                                     </div>
-
-                                    {tag.description && viewMode === 'grid' && (
-                                        <p className="text-slate-600 text-sm mb-4 line-clamp-2">{tag.description}</p>
-                                    )}
 
                                     <div className={`${viewMode === 'list' ? 'flex items-center gap-8' : 'flex items-center justify-between mb-4'}`}>
                                         <div className="text-sm text-slate-500">
-                                            <span className="font-medium text-slate-900">{tag.postCount || 0}</span> posts
+                                            <span className="font-medium text-slate-900">{tag.posts_count || 0}</span> posts
                                         </div>
                                         <div className="text-sm text-slate-500">
-                                            {tag.createdAt ? new Date(tag.createdAt).toLocaleDateString() : 'N/A'}
+                                            {tag.created_at ? new Date(tag.created_at).toLocaleDateString() : 'N/A'}
                                         </div>
-                                        {viewMode === 'list' && (
-                                            <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${tag.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>
-                                                {tag.isActive ? 'Active' : 'Inactive'}
-                                            </span>
-                                        )}
                                     </div>
 
                                     <div className={`flex gap-2 ${viewMode === 'list' ? 'ml-8' : 'pt-4 border-t border-slate-50'}`}>

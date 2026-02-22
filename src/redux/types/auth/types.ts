@@ -22,10 +22,9 @@ export interface BaseApiResponse<T = unknown> {
 // === Request DTOs (match your NestJS DTOs) ===
 
 export interface RegisterRequest {
-  name: string;
+  username: string;
   email: string;
   password: string;
-  // extend to match your RegisterDto if needed
   phone?: string;
   role?: string;
   role_id?: string;
@@ -63,7 +62,7 @@ export interface AuthResponseData {
 
 export type AuthResponse = BaseApiResponse<AuthResponseData>;
 export type RefreshTokenResponse = BaseApiResponse<{ accessToken: string }>;
-export type SimpleMessageResponse = BaseApiResponse<null>;
+export type SimpleMessageResponse = BaseApiResponse<null> & { token?: string; resetUrl?: string };
 
 // === Redux state ===
 

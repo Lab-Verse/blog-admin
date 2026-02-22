@@ -13,6 +13,7 @@ import {
 export default function Page() {
     const { data: posts, isLoading: isLoadingPosts } = useGetPostsQuery();
     const { data: mediaData } = useGetMediaQuery();
+    const mediaItems = Array.isArray(mediaData) ? mediaData : mediaData?.items || [];
 
     const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
 
@@ -55,7 +56,7 @@ export default function Page() {
             posts={posts || []}
             selectedPostId={selectedPostId}
             onSelectPost={setSelectedPostId}
-            allMedia={mediaData?.items || []}
+            allMedia={mediaItems}
             postMedia={postMedia || []}
             onAttach={handleAttach}
             onDetach={handleDetach}

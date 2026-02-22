@@ -15,6 +15,7 @@ export interface Post {
   content: string;
 
   excerpt?: string;
+  description?: string;
   status: PostStatus;
 
   category_id: string;
@@ -70,9 +71,12 @@ export interface CreatePostRequest {
   slug: string;
   content: string;
   excerpt?: string;
+  description?: string;
   category_id: string;
   status?: PostStatus;
   featured_image?: string;
+  tag_ids?: string[];
+  media_ids?: string[];
   published_at?: string;
 }
 

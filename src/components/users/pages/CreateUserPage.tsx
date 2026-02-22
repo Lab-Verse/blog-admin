@@ -14,7 +14,7 @@ interface CreateUserPageProps {
 export default function CreateUserPage({ onSubmit }: CreateUserPageProps) {
     const router = useRouter();
     const [formData, setFormData] = useState<CreateUserDto>({
-        name: '',
+        username: '',
         email: '',
         password: '',
         status: UserStatus.ACTIVE,
@@ -31,8 +31,8 @@ export default function CreateUserPage({ onSubmit }: CreateUserPageProps) {
         e.preventDefault();
         
         // Validate form data
-        if (!formData.name.trim()) {
-            alert('Name is required');
+        if (!formData.username.trim()) {
+            alert('Username is required');
             return;
         }
         if (!formData.email.trim()) {
@@ -72,15 +72,28 @@ export default function CreateUserPage({ onSubmit }: CreateUserPageProps) {
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="space-y-2">
-                            <label htmlFor="name" className="text-sm font-medium text-gray-700">
-                                Full Name
+                            <label htmlFor="username" className="text-sm font-medium text-gray-700">
+                                Username *
                             </label>
                             <Input
-                                id="name"
-                                name="name"
-                                value={formData.name}
+                                id="username"
+                                name="username"
+                                value={formData.username}
                                 onChange={handleChange}
                                 required
+                                placeholder="johndoe"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label htmlFor="display_name" className="text-sm font-medium text-gray-700">
+                                Display Name
+                            </label>
+                            <Input
+                                id="display_name"
+                                name="display_name"
+                                value={formData.display_name || ''}
+                                onChange={handleChange}
                                 placeholder="John Doe"
                             />
                         </div>

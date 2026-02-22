@@ -8,94 +8,15 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Edit, Trash2, Calendar, User, Eye, Tag, Heart, MessageCircle, Share2, Bookmark } from 'lucide-react';
 import Image from 'next/image';
-import { Post, PostStatus } from '@/redux/types/post/posts.types';
+import { PostStatus } from '@/redux/types/post/posts.types';
+import { useGetPostByIdQuery } from '@/redux/api/post/posts.api';
 
 export default function SinglePostPage() {
   const params = useParams();
   const router = useRouter();
-  const [post, setPost] = useState<Post | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const postId = params.id as string;
+  const { data: post, isLoading, error } = useGetPostByIdQuery(postId);
   const [viewCount, setViewCount] = useState(1234);
-
-  useEffect(() => {
-    // Mock API call - replace with real API
-    const fetchPost = async () => {
-      try {
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Mock post data
-        const mockPost: Post = {
-          id: params.id as string,
-          title: 'Complete Guide to React Best Practices',
-          slug: 'complete-guide-react-best-practices',
-          content: `
-            <h2>Introduction</h2>
-            <p>React has become one of the most popular JavaScript libraries for building user interfaces. In this comprehensive guide, we'll explore the best practices that will help you write cleaner, more maintainable React code.</p>
-            
-            <h2>1. Component Structure</h2>
-            <p>Organizing your components properly is crucial for maintainability. Here are some key principles:</p>
-            <ul>
-              <li>Keep components small and focused</li>
-              <li>Use functional components with hooks</li>
-              <li>Separate logic from presentation</li>
-            </ul>
-            
-            <h2>2. State Management</h2>
-            <p>Proper state management is essential for React applications. Consider these approaches:</p>
-            <ul>
-              <li>Use useState for local component state</li>
-              <li>Use useContext for shared state</li>
-              <li>Consider Redux for complex state management</li>
-            </ul>
-            
-            <h2>3. Performance Optimization</h2>
-            <p>To ensure your React app performs well:</p>
-            <ul>
-              <li>Use React.memo for expensive components</li>
-              <li>Implement proper key props in lists</li>
-              <li>Lazy load components when possible</li>
-            </ul>
-            
-            <h2>Conclusion</h2>
-            <p>Following these best practices will help you build better React applications that are easier to maintain and scale.</p>
-          `,
-          excerpt: 'Learn the essential React best practices that will help you write cleaner, more maintainable code and build better applications.',
-          featured_image: 'https://picsum.photos/800/400?random=1',
-          status: PostStatus.PUBLISHED,
-          created_at: '2024-01-15T10:30:00Z',
-          updated_at: '2024-01-15T10:30:00Z',
-          user_id: '1',
-          category_id: '1',
-          user: {
-            id: '1',
-            name: 'John Doe',
-            email: 'john@example.com'
-          },
-          category: {
-            id: '1',
-            name: 'Web Development',
-            slug: 'web-development'
-          },
-          tags: [
-            { id: '1', name: 'React', slug: 'react' },
-            { id: '2', name: 'JavaScript', slug: 'javascript' },
-            { id: '3', name: 'Best Practices', slug: 'best-practices' }
-          ]
-        };
-        
-        setPost(mockPost);
-      } catch (error) {
-        console.error('Failed to fetch post:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (params.id) {
-      fetchPost();
-    }
-  }, [params.id]);
 
   // Realtime view count update
   useEffect(() => {
@@ -135,11 +56,11 @@ export default function SinglePostPage() {
     );
   }
 
-  if (!post) {
+  if (error || (!isLoading && !post)) {
     return (
       <div className="p-6 max-w-4xl mx-auto text-center">
         <h1 className="text-2xl font-bold text-gray-900 mb-4">Post Not Found</h1>
-        <p className="text-gray-600 mb-6">The post you&re looking for doesn&t exist.</p>
+        <p className="text-gray-600 mb-6">The post you're looking for doesn't exist.</p>
         <Button onClick={() => router.push('/posts')}>
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Posts
@@ -147,6 +68,8 @@ export default function SinglePostPage() {
       </div>
     );
   }
+
+  if (!post) return null;
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">

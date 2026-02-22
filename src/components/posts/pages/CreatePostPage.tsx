@@ -4,23 +4,30 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import PostForm from '../ui/PostForm';
 import { Category } from '@/redux/types/category/categories.types';
+import { Tag } from '@/redux/types/tags/types';
+import { Media } from '@/redux/types/media/media.types';
 import { PostStatus } from '@/redux/types/post/posts.types';
 
 interface CreatePostPageProps {
     categories: Category[];
+    tags: Tag[];
+    mediaList: Media[];
     onSubmit: (data: {
         title: string;
         slug: string;
         content: string;
         excerpt: string;
+        description: string;
         category_id: string;
         status: PostStatus;
-        featured_image: string;
+        featured_image?: File | string;
+        tag_ids?: string[];
+        media_ids?: string[];
     }) => Promise<void>;
     onCancel: () => void;
 }
 
-export default function CreatePostPage({ categories, onSubmit, onCancel }: CreatePostPageProps) {
+export default function CreatePostPage({ categories, tags, mediaList, onSubmit, onCancel }: CreatePostPageProps) {
     return (
         <div className="max-w-4xl mx-auto p-6">
             <div className="mb-6">
@@ -35,6 +42,8 @@ export default function CreatePostPage({ categories, onSubmit, onCancel }: Creat
                 <CardContent>
                     <PostForm
                         categories={categories}
+                        tags={tags}
+                        mediaList={mediaList}
                         onSubmit={onSubmit}
                         onCancel={onCancel}
                         submitLabel="Create Post"

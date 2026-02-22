@@ -36,8 +36,8 @@ export default function CategoriesPageComponent({
 
   // Calculate stats from real data
   const totalCategories = categories.length;
-  const activeCategories = categories.filter(c => c.isActive).length;
-  const totalPosts = categories.reduce((sum, c) => sum + (c.postCount || 0), 0);
+  const activeCategories = categories.filter(c => c.is_active).length;
+  const totalPosts = categories.reduce((sum, c) => sum + (c.posts_count || 0), 0);
   const avgPosts = totalCategories > 0 ? Math.round(totalPosts / totalCategories) : 0;
 
   return (
@@ -153,29 +153,29 @@ export default function CategoriesPageComponent({
                     </div>
                     <div>
                       <h3 className="font-bold text-lg text-slate-900 group-hover:text-primary-600 transition-colors">{category.name}</h3>
-                      <p className="text-sm text-slate-500 line-clamp-1">{category.description || 'No description'}</p>
+                      <p className="text-sm text-slate-500 font-mono">/{category.slug}</p>
                     </div>
                   </div>
                   {viewMode === 'grid' && (
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${category.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>
-                      {category.isActive ? 'Active' : 'Inactive'}
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${category.is_active ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>
+                      {category.is_active ? 'Active' : 'Inactive'}
                     </span>
                   )}
                 </div>
 
                 <div className={`${viewMode === 'list' ? 'flex items-center gap-8 mr-8' : 'space-y-4'}`}>
                   {viewMode === 'list' && (
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${category.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>
-                      {category.isActive ? 'Active' : 'Inactive'}
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${category.is_active ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>
+                      {category.is_active ? 'Active' : 'Inactive'}
                     </span>
                   )}
 
                   <div className={`flex items-center justify-between text-sm text-slate-500 ${viewMode === 'list' ? 'gap-8' : ''}`}>
                     <span className="flex items-center gap-1.5">
                       <BarChart3 className="w-4 h-4" />
-                      {category.postCount || 0} posts
+                      {category.posts_count || 0} posts
                     </span>
-                    <span>{category.createdAt ? new Date(category.createdAt).toLocaleDateString() : 'N/A'}</span>
+                    <span>{category.created_at ? new Date(category.created_at).toLocaleDateString() : 'N/A'}</span>
                   </div>
 
                   <div className={`flex gap-2 ${viewMode === 'list' ? '' : 'pt-4 border-t border-slate-50'}`}>

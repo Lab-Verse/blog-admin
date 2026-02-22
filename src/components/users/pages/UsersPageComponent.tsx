@@ -35,10 +35,11 @@ export default function UsersPageComponent({
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   const filteredUsers = users.filter((user) => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (user.profile?.firstName && user.profile.firstName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (user.profile?.lastName && user.profile.lastName.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesSearch = user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.display_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (user.profile?.first_name && user.profile.first_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (user.profile?.last_name && user.profile.last_name.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = statusFilter === 'all' || user.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -63,10 +64,13 @@ export default function UsersPageComponent({
   };
 
   const getInitials = (user: User) => {
-    if (user.profile?.firstName && user.profile?.lastName) {
-      return `${user.profile.firstName[0]}${user.profile.lastName[0]}`.toUpperCase();
+    if (user.profile?.first_name && user.profile?.last_name) {
+      return `${user.profile.first_name[0]}${user.profile.last_name[0]}`.toUpperCase();
     }
-    return user.name.slice(0, 2).toUpperCase();
+    if (user.display_name) {
+      return user.display_name.slice(0, 2).toUpperCase();
+    }
+    return user.username?.slice(0, 2).toUpperCase() || 'U';
   };
 
   return (
@@ -210,9 +214,9 @@ export default function UsersPageComponent({
                       )}
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-slate-900 truncate group-hover:text-primary-600 transition-colors">
-                          {user.profile?.firstName && user.profile?.lastName ? `${user.profile.firstName} ${user.profile.lastName}` : user.name}
+                          {user.profile?.first_name && user.profile?.last_name ? `${user.profile.first_name} ${user.profile.last_name}` : (user.display_name || user.username)}
                         </h3>
-                        <p className="text-sm text-slate-500 truncate">@{user.name}</p>
+                        <p className="text-sm text-slate-500 truncate">@{user.username}</p>
                       </div>
                     </div>
 
@@ -223,7 +227,7 @@ export default function UsersPageComponent({
                       </div>
                       <div className="flex items-center gap-2 text-sm text-slate-600">
                         <Calendar className="w-4 h-4 text-slate-400" />
-                        <span>Joined {new Date(user.createdAt || '').toLocaleDateString()}</span>
+                        <span>Joined {new Date(user.created_at || '').toLocaleDateString()}</span>
                       </div>
                     </div>
 

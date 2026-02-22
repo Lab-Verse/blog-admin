@@ -9,6 +9,7 @@ export default function MediaPage() {
     pollingInterval: 30000,
     refetchOnMountOrArgChange: true,
   });
+  const mediaItems = Array.isArray(data) ? data : data?.items || [];
 
   const [uploadMedia] = useUploadMediaMutation();
   const [deleteMedia] = useDeleteMediaMutation();
@@ -31,7 +32,7 @@ export default function MediaPage() {
 
   return (
     <MediaPageComponent
-      media={data?.items || []}
+      media={mediaItems}
       isLoading={isLoading}
       onUpload={handleUpload}
       onDelete={handleDelete}

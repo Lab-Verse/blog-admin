@@ -28,10 +28,7 @@ export default function CategoryForm({
     const [formData, setFormData] = useState<CreateCategoryDto>({
         name: initialData?.name ?? '',
         slug: initialData?.slug ?? '',
-        description: initialData?.description ?? '',
-        color: initialData?.color ?? '#3B82F6',
-        iconUrl: initialData?.iconUrl ?? '',
-        isActive: initialData?.isActive ?? true,
+        is_active: initialData?.is_active ?? true,
     });
 
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -74,7 +71,6 @@ export default function CategoryForm({
                     onChange={e => {
                         const name = e.target.value;
                         const updates: Partial<CreateCategoryDto> = { name };
-                        // Auto-generate slug only if we're creating a new category (no initial slug)
                         if (!initialData?.slug) {
                             updates.slug = generateSlug(name);
                         }
@@ -100,50 +96,16 @@ export default function CategoryForm({
                 <p className="text-xs text-gray-500 mt-1">Auto‑generated from name, or customise it</p>
             </div>
 
-            {/* Description */}
-            <div>
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={e => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="A brief description of this category..."
-                    rows={3}
-                />
-            </div>
-
-            {/* Color */}
-            <div>
-                <Label>Category Color</Label>
-                <Input
-                    type="color"
-                    value={formData.color}
-                    onChange={e => setFormData({ ...formData, color: e.target.value })}
-                />
-            </div>
-
-            {/* Icon URL */}
-            <div>
-                <Label htmlFor="iconUrl">Icon URL (optional)</Label>
-                <Input
-                    id="iconUrl"
-                    type="url"
-                    value={formData.iconUrl}
-                    onChange={e => setFormData({ ...formData, iconUrl: e.target.value })}
-                    placeholder="https://example.com/icon.svg"
-                />
-            </div>
-
             {/* Active Status */}
             <div className="flex items-center gap-3">
                 <input
                     type="checkbox"
-                    id="isActive"
-                    checked={formData.isActive}
-                    onChange={e => setFormData({ ...formData, isActive: e.target.checked })}
+                    id="is_active"
+                    checked={formData.is_active}
+                    onChange={e => setFormData({ ...formData, is_active: e.target.checked })}
                     className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                 />
-                <Label htmlFor="isActive" className="cursor-pointer">
+                <Label htmlFor="is_active" className="cursor-pointer">
                     Active (visible to users)
                 </Label>
             </div>
