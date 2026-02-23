@@ -34,36 +34,43 @@ export default function Page() {
         media_ids?: string[];
     }) => {
         try {
-            const formData = new FormData();
-            formData.append('title', data.title);
-            formData.append('slug', data.slug);
-            formData.append('content', data.content);
-            formData.append('excerpt', data.excerpt);
-            formData.append('description', data.description);
-            formData.append('category_id', data.category_id);
-            formData.append('status', data.status);
+            console.log('Submitting post data:', data);
             
             if (data.featured_image instanceof File) {
+                const formData = new FormData();
+                formData.append('title', data.title);
+                formData.append('slug', data.slug);
+                formData.append('content', data.content);
+                formData.append('excerpt', data.excerpt);
+                formData.append('description', data.description);
+                formData.append('category_id', data.category_id);
+                formData.append('status', data.status);
                 formData.append('featured_image', data.featured_image);
+                
+                if (data.tag_ids && data.tag_ids.length > 0) {
+                    formData.append('tag_ids', JSON.stringify(data.tag_ids));
+                }
+                if (data.media_ids && data.media_ids.length > 0) {
+                    formData.append('media_ids', JSON.stringify(data.media_ids));
+                }
+                
+                console.log('Sending FormData with featured_image');
+                const result = await createPost(formData).unwrap();
+                console.log('Post created successfully:', result);
+            } else {
+                console.log('Sending JSON data');
+                const result = await createPost(data as any).unwrap();
+                console.log('Post created successfully:', result);
             }
-
-            if (data.tag_ids && data.tag_ids.length > 0) {
-                data.tag_ids.forEach((tagId) => {
-                    formData.append('tag_ids[]', tagId);
-                });
-            }
-
-            if (data.media_ids && data.media_ids.length > 0) {
-                data.media_ids.forEach((mediaId) => {
-                    formData.append('media_ids[]', mediaId);
-                });
-            }
-
-            await createPost(formData).unwrap();
+            
             router.push('/posts');
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to create post:', error);
-            alert('Failed to create post');
+            console.error('Error status:', error?.status);
+            console.error('Error data:', error?.data);
+            console.error('Error message:', error?.error);
+            const errorMessage = error?.data?.message || error?.error || error?.message || 'Failed to create post';
+            alert(errorMessage);
         }
     };
 

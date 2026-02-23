@@ -54,6 +54,7 @@ export interface Post {
     type: string;
     user_id: string;
   }>;
+  views?: number;
 }
 
 /** Query params for listing posts */

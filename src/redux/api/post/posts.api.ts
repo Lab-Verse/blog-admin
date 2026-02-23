@@ -27,6 +27,23 @@ export const postsApi = baseApi.injectEndpoints({
     /** List posts with optional filters/pagination */
     getPosts: builder.query<Post[], PostsQueryParams | void>({
       query: (params) => `/posts${buildQueryString(params || undefined)}`,
+      transformResponse: (response: any): Post[] => {
+        const posts = Array.isArray(response) ? response : response?.items || response?.data || [];
+        // Flatten media array in each post
+        return posts.map((post: any) => {
+          if (post.media && Array.isArray(post.media)) {
+            post.media = post.media.map((pm: any) => ({
+              id: pm.media?.id || pm.media_id || pm.id,
+              media_id: pm.media_id,
+              url: pm.media?.url || pm.media?.file_url || pm.url || pm.file_url,
+              type: pm.media?.type || pm.type,
+              alt_text: pm.media?.alt_text || pm.altText || pm.alt_text,
+              filename: pm.media?.filename || pm.filename,
+            }));
+          }
+          return post;
+        });
+      },
       providesTags: (result) =>
         result
           ? [
@@ -39,24 +56,46 @@ export const postsApi = baseApi.injectEndpoints({
     /** Get single post by id */
     getPostById: builder.query<Post, string>({
       query: (id) => `/posts/${id}`,
+      transformResponse: (response: any): Post => {
+        // Flatten the media array from PostMedia objects to Media objects
+        if (response && response.media && Array.isArray(response.media)) {
+          response.media = response.media.map((pm: any) => ({
+            id: pm.media?.id || pm.media_id || pm.id,
+            media_id: pm.media_id,
+            url: pm.media?.url || pm.media?.file_url || pm.url || pm.file_url,
+            type: pm.media?.type || pm.type,
+            alt_text: pm.media?.alt_text || pm.altText || pm.alt_text,
+            filename: pm.media?.filename || pm.filename,
+          }));
+        }
+        return response;
+      },
       providesTags: (result, _err, id) => [{ type: 'Post' as const, id }],
     }),
 
     /** Create post */
     createPost: builder.mutation<Post, FormData | CreatePostRequest>({
-      query: (body) => ({
-        url: '/posts',
-        method: 'POST',
-        body,
-        formData: body instanceof FormData,
-      }),
+      query: (body) => {
+        if (body instanceof FormData) {
+          return {
+            url: '/posts',
+            method: 'POST',
+            body,
+          };
+        }
+        return {
+          url: '/posts',
+          method: 'POST',
+          body,
+        };
+      },
       invalidatesTags: [{ type: 'Post', id: 'LIST' }],
     }),
 
     /** Update post */
     updatePost: builder.mutation<
       Post,
-      { id: string; body: UpdatePostRequest }
+      { id: string; body: FormData | UpdatePostRequest }
     >({
       query: ({ id, body }) => ({
         url: `/posts/${id}`,

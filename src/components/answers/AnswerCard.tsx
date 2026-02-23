@@ -72,6 +72,11 @@ export const AnswerCard: React.FC<AnswerCardProps> = ({
             </div>
 
             {/* Content */}
+            {answer.question?.title && (
+                <p className="text-sm font-medium text-primary-700 mb-2">
+                    Question: {answer.question.title}
+                </p>
+            )}
             <p className="text-secondary-700 mb-4 line-clamp-4 leading-relaxed">
                 {answer.content}
             </p>

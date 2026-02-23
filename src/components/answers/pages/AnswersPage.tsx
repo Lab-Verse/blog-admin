@@ -8,6 +8,7 @@ import {
     useUpdateAnswerMutation,
     useDeleteAnswerMutation,
 } from '@/redux/api/answer/answersApi';
+import { useGetQuestionsQuery } from '@/redux/api/question/questions.api';
 import {
     selectAnswersList,
     selectAnswersTotal,
@@ -17,6 +18,7 @@ import {
 import { Answer } from '@/redux/types/answer/answers.types';
 import { AnswerCard } from '../AnswerCard';
 import { MessageSquare, Plus, AlertCircle } from 'lucide-react';
+import { useAppSelector } from '@/redux/hooks';
 
 interface AnswersPageProps {
     questionId?: string; // Optional: filter by question
@@ -26,9 +28,12 @@ export const AnswersPage: React.FC<AnswersPageProps> = ({ questionId }) => {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [answerToEdit, setAnswerToEdit] = useState<Answer | null>(null);
     const [newAnswerContent, setNewAnswerContent] = useState('');
-
-    // Fetch answers
-    const { isLoading: isFetching } = useGetAnswersQuery(questionId ? { questionId } : undefined);
+    const [selectedQuestionId, setSelectedQuestionId] = useState(questionId ?? '');
+    const currentUser = useAppSelector((state) => state.auth?.user);
+    const currentUserId = currentUser?.id || '';
+    const isAuthenticated = useAppSelector((state) => !!state.auth?.accessToken);
+    const { isLoading: isFetching } = useGetAnswersQuery(selectedQuestionId ? { questionId: selectedQuestionId } : undefined);
+    const { data: questions = [] } = useGetQuestionsQuery();
     const answers = useSelector(selectAnswersList);
     const total = useSelector(selectAnswersTotal);
     const isLoading = useSelector(selectAnswersLoading);
@@ -40,10 +45,14 @@ export const AnswersPage: React.FC<AnswersPageProps> = ({ questionId }) => {
     const [deleteAnswer, { isLoading: isDeleting }] = useDeleteAnswerMutation();
 
     const handleCreateAnswer = async () => {
-        if (!newAnswerContent.trim() || !questionId) return;
+        if (!newAnswerContent.trim() || !selectedQuestionId || !isAuthenticated) return;
 
         try {
-            await createAnswer({ content: newAnswerContent, questionId }).unwrap();
+            await createAnswer({ 
+                content: newAnswerContent, 
+                questionId: selectedQuestionId, 
+                userId: currentUserId || 'current-user' 
+            }).unwrap();
             setNewAnswerContent('');
             setIsFormOpen(false);
         } catch (err) {
@@ -55,6 +64,7 @@ export const AnswersPage: React.FC<AnswersPageProps> = ({ questionId }) => {
     const handleEditAnswer = (answer: Answer) => {
         setAnswerToEdit(answer);
         setNewAnswerContent(answer.content);
+        setSelectedQuestionId(answer.questionId);
         setIsFormOpen(true);
     };
 
@@ -148,27 +158,68 @@ export const AnswersPage: React.FC<AnswersPageProps> = ({ questionId }) => {
                         </div>
                     </div>
 
-                    {questionId && (
-                        <button
-                            onClick={() => {
-                                setAnswerToEdit(null);
-                                setNewAnswerContent('');
-                                setIsFormOpen(!isFormOpen);
-                            }}
-                            className="flex items-center gap-2 px-5 py-3 bg-linear-to-r from-accent-600 to-primary-600 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
-                        >
-                            <Plus className="w-5 h-5" />
-                            <span>Add Answer</span>
-                        </button>
-                    )}
+                    <button
+                        onClick={() => {
+                            setAnswerToEdit(null);
+                            setNewAnswerContent('');
+                            if (questionId) setSelectedQuestionId(questionId);
+                            setIsFormOpen(!isFormOpen);
+                        }}
+                        className="flex items-center gap-2 px-5 py-3 bg-linear-to-r from-accent-600 to-primary-600 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                    >
+                        <Plus className="w-5 h-5" />
+                        <span>Add Answer</span>
+                    </button>
                 </div>
 
+                {!questionId && (
+                    <div className="bg-white rounded-xl shadow-md p-4 mb-6">
+                        <label htmlFor="filter-question" className="block text-sm font-medium text-secondary-700 mb-2">
+                            Filter by Question
+                        </label>
+                        <select
+                            id="filter-question"
+                            value={selectedQuestionId}
+                            onChange={(e) => setSelectedQuestionId(e.target.value)}
+                            className="w-full md:w-96 px-4 py-2 border border-secondary-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        >
+                            <option value="">All Questions</option>
+                            {questions.map((question) => (
+                                <option key={question.id} value={question.id}>
+                                    {question.title}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                )}
+
                 {/* Answer Form */}
-                {isFormOpen && questionId && (
+                {isFormOpen && (
                     <div className="bg-white rounded-xl shadow-lg p-6 mb-6 fade-in">
                         <h3 className="text-lg font-semibold text-secondary-900 mb-4">
                             {answerToEdit ? 'Edit Answer' : 'Write Your Answer'}
                         </h3>
+
+                        <div className="mb-4">
+                            <label htmlFor="answer-question" className="block text-sm font-medium text-secondary-700 mb-2">
+                                Question
+                            </label>
+                            <select
+                                id="answer-question"
+                                value={selectedQuestionId}
+                                onChange={(e) => setSelectedQuestionId(e.target.value)}
+                                disabled={Boolean(questionId) || Boolean(answerToEdit)}
+                                className="w-full px-4 py-3 border border-secondary-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-secondary-50"
+                            >
+                                <option value="">Select a question</option>
+                                {questions.map((question) => (
+                                    <option key={question.id} value={question.id}>
+                                        {question.title}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
                         <textarea
                             value={newAnswerContent}
                             onChange={(e) => setNewAnswerContent(e.target.value)}
@@ -189,12 +240,15 @@ export const AnswersPage: React.FC<AnswersPageProps> = ({ questionId }) => {
                             </button>
                             <button
                                 onClick={answerToEdit ? handleUpdateAnswer : handleCreateAnswer}
-                                disabled={isCreating || isUpdating || !newAnswerContent.trim()}
+                                disabled={isCreating || isUpdating || !newAnswerContent.trim() || !selectedQuestionId || !isAuthenticated}
                                 className="px-6 py-2 bg-linear-to-r from-accent-600 to-primary-600 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:transform-none"
                             >
                                 {isCreating || isUpdating ? 'Saving...' : answerToEdit ? 'Update Answer' : 'Post Answer'}
                             </button>
                         </div>
+                        {!isAuthenticated && (
+                            <p className="mt-3 text-sm text-danger-600">You must be logged in to add an answer.</p>
+                        )}
                     </div>
                 )}
 

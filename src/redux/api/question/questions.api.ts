@@ -8,6 +8,48 @@ import {
   UpdateQuestionRequest,
 } from '../../types/question/questions.types';
 
+const normalizeQuestion = (question: any): Question => ({
+  id: String(question.id),
+  user_id: String(question.user_id),
+  title: question.title,
+  slug: question.slug,
+  content: question.content,
+  category_id: String(question.category_id),
+  status: question.status || 'open',
+  created_at: question.created_at,
+  updated_at: question.updated_at,
+  user: question.user
+    ? {
+        id: String(question.user.id),
+        name: question.user.name || question.user.username,
+        email: question.user.email,
+      }
+    : undefined,
+  category: question.category
+    ? {
+        id: String(question.category.id),
+        name: question.category.name,
+        slug: question.category.slug,
+      }
+    : undefined,
+});
+
+const normalizeQuestionsList = (response: any): Question[] => {
+  if (Array.isArray(response)) {
+    return response.map(normalizeQuestion);
+  }
+
+  const items = Array.isArray(response?.items)
+    ? response.items
+    : Array.isArray(response?.data?.items)
+      ? response.data.items
+      : Array.isArray(response?.data)
+        ? response.data
+        : [];
+
+  return items.map(normalizeQuestion);
+};
+
 const buildQueryString = (params?: QuestionsQueryParams): string => {
   if (!params) return '';
   const searchParams = new URLSearchParams();
@@ -27,6 +69,7 @@ export const questionsApi = baseApi.injectEndpoints({
     /** List questions */
     getQuestions: builder.query<Question[], QuestionsQueryParams | void>({
       query: (params) => `/questions${buildQueryString(params || undefined)}`,
+      transformResponse: (response: any) => normalizeQuestionsList(response),
       providesTags: (result) =>
         result
           ? [
@@ -39,6 +82,7 @@ export const questionsApi = baseApi.injectEndpoints({
     /** Get single question */
     getQuestionById: builder.query<Question, string>({
       query: (id) => `/questions/${id}`,
+      transformResponse: (response: any) => normalizeQuestion(response?.data ?? response),
       providesTags: (result, _err, id) => [{ type: 'Question' as const, id }],
     }),
 
@@ -49,6 +93,7 @@ export const questionsApi = baseApi.injectEndpoints({
         method: 'POST',
         body,
       }),
+      transformResponse: (response: any) => normalizeQuestion(response?.data ?? response),
       invalidatesTags: [{ type: 'Question', id: 'LIST' }],
     }),
 
@@ -62,6 +107,7 @@ export const questionsApi = baseApi.injectEndpoints({
         method: 'PATCH',
         body,
       }),
+      transformResponse: (response: any) => normalizeQuestion(response?.data ?? response),
       invalidatesTags: (result, _err, { id }) => [
         { type: 'Question', id },
         { type: 'Question', id: 'LIST' },

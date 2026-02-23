@@ -17,6 +17,19 @@ interface SetCredentialsPayload {
   tokens: AuthTokens;
 }
 
+const extractAuthPayload = (payload: any) => {
+  const data = payload?.data ?? payload ?? {};
+  const user = data?.user ?? null;
+  const accessToken = data?.tokens?.accessToken ?? data?.accessToken ?? null;
+  const refreshToken = data?.tokens?.refreshToken ?? data?.refreshToken ?? null;
+
+  return {
+    user,
+    accessToken,
+    refreshToken,
+  };
+};
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -54,16 +67,15 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addMatcher(authApi.endpoints.login.matchFulfilled, (state, action) => {
-        const { payload } = action;
-        const data = payload.data;
-        if (data) {
-          state.user = data.user;
-          state.accessToken = data.accessToken;
-          state.refreshToken = data.refreshToken ?? null;
+        const { user, accessToken, refreshToken } = extractAuthPayload(action.payload);
+        if (user && accessToken) {
+          state.user = user;
+          state.accessToken = accessToken;
+          state.refreshToken = refreshToken;
           state.isAuthenticated = true;
-          Cookies.set('accessToken', data.accessToken, { expires: 7 });
-          if (data.refreshToken) {
-            Cookies.set('refreshToken', data.refreshToken, { expires: 30 });
+          Cookies.set('accessToken', accessToken, { expires: 7 });
+          if (refreshToken) {
+            Cookies.set('refreshToken', refreshToken, { expires: 30 });
           }
         }
         state.isLoading = false;
@@ -83,16 +95,15 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addMatcher(authApi.endpoints.register.matchFulfilled, (state, action) => {
-        const { payload } = action;
-        const data = payload.data;
-        if (data) {
-          state.user = data.user;
-          state.accessToken = data.tokens.accessToken;
-          state.refreshToken = data.tokens.refreshToken ?? null;
+        const { user, accessToken, refreshToken } = extractAuthPayload(action.payload);
+        if (user && accessToken) {
+          state.user = user;
+          state.accessToken = accessToken;
+          state.refreshToken = refreshToken;
           state.isAuthenticated = true;
-          Cookies.set('accessToken', data.tokens.accessToken, { expires: 7 });
-          if (data.tokens.refreshToken) {
-            Cookies.set('refreshToken', data.tokens.refreshToken, { expires: 30 });
+          Cookies.set('accessToken', accessToken, { expires: 7 });
+          if (refreshToken) {
+            Cookies.set('refreshToken', refreshToken, { expires: 30 });
           }
         }
         state.isLoading = false;

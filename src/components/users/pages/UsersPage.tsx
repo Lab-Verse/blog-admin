@@ -114,8 +114,8 @@ export default function UsersPage({
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="shrink-0 h-10 w-10">
-                            {user.avatarUrl ? (
-                              <Image className="h-10 w-10 rounded-full object-cover ring-2 ring-white shadow-sm" src={user.avatarUrl} alt={user.name || 'User avatar'} width={40} height={40} />
+                            {user.profile?.profile_picture ? (
+                              <Image className="h-10 w-10 rounded-full object-cover ring-2 ring-white shadow-sm" src={user.profile.profile_picture} alt={user.username || 'User avatar'} width={40} height={40} />
                             ) : (
                               <div className="h-10 w-10 rounded-full bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold shadow-sm">
                                 {user.username?.charAt(0).toUpperCase() || 'U'}

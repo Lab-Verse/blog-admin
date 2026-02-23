@@ -3,17 +3,42 @@
 import { baseApi } from '../baseApi';
 import type {
   Comment,
+  CommentStatus,
   CreateCommentDto,
   GetCommentsQuery,
-  PaginatedCommentsResponse,
   UpdateCommentDto,
 } from '../../types/comment/comments.types';
+
+const normalizeComment = (comment: any): Comment => ({
+  id: comment.id,
+  postId: comment.post_id,
+  authorId: comment.user_id,
+  content: comment.content,
+  status: (comment.status || 'visible') as CommentStatus,
+  createdAt: comment.created_at,
+  updatedAt: comment.updated_at,
+  author: comment.user
+    ? {
+        id: comment.user.id,
+        name: comment.user.name || comment.user.username,
+        avatarUrl: comment.user.avatar_url,
+      }
+    : undefined,
+});
+
+const extractCommentArray = (response: any): any[] => {
+  if (Array.isArray(response)) return response;
+  if (Array.isArray(response?.data)) return response.data;
+  if (Array.isArray(response?.items)) return response.items;
+  if (Array.isArray(response?.data?.items)) return response.data.items;
+  return [];
+};
 
 export const commentsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // GET /comments
     getComments: builder.query<
-      PaginatedCommentsResponse,
+      Comment[],
       GetCommentsQuery | void
     >({
       query: (params) => ({
@@ -21,10 +46,11 @@ export const commentsApi = baseApi.injectEndpoints({
         method: 'GET',
         params: params === undefined ? undefined : params,
       }),
+      transformResponse: (response: any) => extractCommentArray(response).map(normalizeComment),
       providesTags: (result) =>
         result
           ? [
-            ...result.items.map((c) => ({
+            ...result.map((c) => ({
               type: 'Comment' as const,
               id: c.id,
             })),
@@ -39,6 +65,7 @@ export const commentsApi = baseApi.injectEndpoints({
         url: `/comments/${id}`,
         method: 'GET',
       }),
+      transformResponse: (response: any) => normalizeComment(response?.data ?? response),
       providesTags: (_result, _error, id) => [
         { type: 'Comment', id },
         { type: 'Comment', id: 'LIST' },
@@ -50,8 +77,12 @@ export const commentsApi = baseApi.injectEndpoints({
       query: (body) => ({
         url: '/comments',
         method: 'POST',
-        body,
+        body: {
+          post_id: body.postId,
+          content: body.content,
+        },
       }),
+      transformResponse: (response: any) => normalizeComment(response?.data ?? response),
       invalidatesTags: [{ type: 'Comment', id: 'LIST' }],
     }),
 

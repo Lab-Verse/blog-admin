@@ -39,10 +39,7 @@ const commentsSlice = createSlice({
       .addMatcher(
         commentsApi.endpoints.getComments.matchFulfilled,
         (state, { payload }) => {
-          state.list = payload.items as Comment[];
-          state.total = payload.total;
-          state.page = payload.page;
-          state.limit = payload.limit;
+          state.list = Array.isArray(payload) ? payload : [];
           state.isLoading = false;
         },
       )

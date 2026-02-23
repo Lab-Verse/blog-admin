@@ -6,6 +6,7 @@ import {
     useGetReportsQuery,
     useUpdateReportMutation,
 } from '@/redux/api/report/reports.api';
+import { useDeletePostMutation } from '@/redux/api/post/posts.api';
 import {
     selectFilteredReports,
     selectAllReports,
@@ -23,83 +24,19 @@ import {
 import { Report, ReportStatus, ReportTargetType, UpdateReportRequest } from '@/redux/types/report/reports.types';
 import { ReportCard } from '../ReportCard';
 import { ReportDetailModal } from '../ReportDetailModal';
-import { Shield, Search, Filter, AlertTriangle, CheckCircle, XCircle, Info } from 'lucide-react';
+import { Shield, Search, Filter, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 
 interface ReportsPageProps {
     moderatorId: string;
 }
 
-// Mock data for fallback
-const MOCK_REPORTS: Report[] = [
-    {
-        id: '1',
-        reporter_id: 'user-1',
-        target_type: 'post',
-        post_id: 'post-1',
-        reason: 'Spam',
-        description: 'This post is just a link to a suspicious website.',
-        status: ReportStatus.OPEN,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        reporter: { id: 'user-1', name: 'John Doe', email: 'john@example.com' }
-    },
-    {
-        id: '2',
-        reporter_id: 'user-2',
-        target_type: 'comment',
-        comment_id: 'comment-1',
-        reason: 'Harassment',
-        description: 'User is being abusive in the comments.',
-        status: ReportStatus.IN_REVIEW,
-        created_at: new Date(Date.now() - 3600000).toISOString(),
-        updated_at: new Date().toISOString(),
-        reporter: { id: 'user-2', name: 'Jane Smith', email: 'jane@example.com' }
-    },
-    {
-        id: '3',
-        reporter_id: 'user-3',
-        target_type: 'user',
-        reported_user_id: 'user-4',
-        reason: 'Inappropriate Profile',
-        description: 'Profile picture contains offensive content.',
-        status: ReportStatus.RESOLVED,
-        created_at: new Date(Date.now() - 86400000).toISOString(),
-        updated_at: new Date().toISOString(),
-        reporter: { id: 'user-3', name: 'Mike Johnson', email: 'mike@example.com' }
-    },
-    {
-        id: '4',
-        reporter_id: 'user-1',
-        target_type: 'post',
-        post_id: 'post-5',
-        reason: 'Misinformation',
-        description: 'Claims are not backed by facts.',
-        status: ReportStatus.REJECTED,
-        created_at: new Date(Date.now() - 172800000).toISOString(),
-        updated_at: new Date().toISOString(),
-        reporter: { id: 'user-1', name: 'John Doe', email: 'john@example.com' }
-    },
-    {
-        id: '5',
-        reporter_id: 'user-5',
-        target_type: 'question',
-        question_id: 'q-1',
-        reason: 'Duplicate',
-        description: 'This question has been asked multiple times.',
-        status: ReportStatus.OPEN,
-        created_at: new Date(Date.now() - 7200000).toISOString(),
-        updated_at: new Date().toISOString(),
-        reporter: { id: 'user-5', name: 'Sarah Wilson', email: 'sarah@example.com' }
-    }
-];
-
 export const ReportsPage: React.FC<ReportsPageProps> = ({ moderatorId }) => {
     const dispatch = useDispatch();
     const [selectedReport, setSelectedReport] = useState<Report | null>(null);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
-    const { isLoading: isFetching } = useGetReportsQuery();
+    const { isLoading: isFetching, data: apiData, error: apiError } = useGetReportsQuery();
     const rawFilteredReports = useSelector(selectFilteredReports);
     const rawAllReports = useSelector(selectAllReports);
     const isLoading = useSelector(selectReportsLoading);
@@ -109,76 +46,60 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ moderatorId }) => {
     const targetTypeFilter = useSelector(selectReportsTargetTypeFilter);
 
     const [updateReport, { isLoading: isUpdating }] = useUpdateReportMutation();
+    const [deletePost, { isLoading: isDeletingPost }] = useDeletePostMutation();
 
-    // Use mock data if there's an error
-    const allReports = error ? MOCK_REPORTS : rawAllReports;
-    const isDemoMode = !!error;
-
-    // Filter mock data if in demo mode
-    const filteredReports = isDemoMode
-        ? allReports.filter(report => {
-            const matchesSearch = !searchQuery ||
-                report.reason.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                report.description?.toLowerCase().includes(searchQuery.toLowerCase());
-            const matchesStatus = statusFilter === 'all' || report.status === statusFilter;
-            const matchesType = targetTypeFilter === 'all' || report.target_type === targetTypeFilter;
-            return matchesSearch && matchesStatus && matchesType;
-        })
-        : rawFilteredReports;
+    // Use real data from Redux
+    const allReports = rawAllReports;
+    const filteredReports = rawFilteredReports;
 
     const handleViewReport = (report: Report) => {
         setSelectedReport(report);
         setIsDetailModalOpen(true);
     };
 
-    const handleQuickResolve = async (report: Report) => {
-        if (isDemoMode) {
-            alert('Resolve functionality is disabled in demo mode.');
+    const handleAcceptReport = async (report: Report) => {
+        if (report.target_type !== 'post' || !report.post_id) {
+            alert('This report is not about a post.');
             return;
         }
+
+        const confirmDelete = window.confirm(
+            'Are you sure you want to delete this post? This action cannot be undone.'
+        );
+        if (!confirmDelete) return;
+
         try {
+            // Delete the post
+            await deletePost(report.post_id).unwrap();
+
+            // Update the report status to RESOLVED
             await updateReport({
                 id: report.id,
                 body: {
                     status: ReportStatus.RESOLVED,
                     moderator_id: moderatorId,
+                    resolution_notes: 'Post removed due to policy violation',
                 },
             }).unwrap();
         } catch (err) {
-            console.error('Failed to resolve report:', err);
-            alert('Failed to resolve report. Please try again.');
+            console.error('Failed to accept report:', err);
+            alert('Failed to accept report. Please try again.');
         }
     };
 
-    const handleQuickReject = async (report: Report) => {
-        if (isDemoMode) {
-            alert('Reject functionality is disabled in demo mode.');
-            return;
-        }
+    const handleRejectReport = async (report: Report) => {
         try {
             await updateReport({
                 id: report.id,
                 body: {
                     status: ReportStatus.REJECTED,
                     moderator_id: moderatorId,
+                    resolution_notes: 'Report rejected - content is acceptable',
                 },
             }).unwrap();
         } catch (err) {
             console.error('Failed to reject report:', err);
             alert('Failed to reject report. Please try again.');
-        }
-    };
-
-    const handleUpdateReport = async (id: string, data: UpdateReportRequest) => {
-        if (isDemoMode) {
-            alert('Update functionality is disabled in demo mode.');
-            return;
-        }
-        try {
-            await updateReport({ id, body: data }).unwrap();
-        } catch (err) {
-            console.error('Failed to update report:', err);
-            throw err;
         }
     };
 
@@ -212,16 +133,6 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ moderatorId }) => {
 
     return (
         <div className="p-6 space-y-6">
-            {/* Demo Mode Alert */}
-            {isDemoMode && (
-                <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg flex items-center gap-2 mb-4">
-                    <Info className="w-5 h-5" />
-                    <p className="text-sm font-medium">
-                        Showing demo data because the backend is unreachable.
-                    </p>
-                </div>
-            )}
-
             {/* Header with Gradient Title */}
             <div className="mb-8 fade-in">
                 <div className="flex items-center gap-2 mb-2">
@@ -374,8 +285,8 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ moderatorId }) => {
                             key={report.id}
                             report={report}
                             onView={handleViewReport}
-                            onResolve={handleQuickResolve}
-                            onReject={handleQuickReject}
+                            onAccept={handleAcceptReport}
+                            onReject={handleRejectReport}
                         />
                     ))}
                 </div>
@@ -389,7 +300,17 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ moderatorId }) => {
                     setIsDetailModalOpen(false);
                     setSelectedReport(null);
                 }}
-                onUpdate={handleUpdateReport}
+                onUpdate={async (id, data) => {
+                    try {
+                        await updateReport({ id, body: data }).unwrap();
+                    } catch (err: any) {
+                        console.error('Failed to update report:', err?.data || err?.message || err);
+                        const errorMessage = err?.data?.message || err?.message || 'Failed to update report. Please try again.';
+                        throw new Error(errorMessage);
+                    }
+                }}
+                onAccept={handleAcceptReport}
+                onReject={handleRejectReport}
                 moderatorId={moderatorId}
                 isLoading={isUpdating}
             />

@@ -46,7 +46,7 @@ export const viewsApi = baseApi.injectEndpoints({
       }),
       providesTags: ['View'],
     }),
-    getViewAnalytics: builder.query<ViewAnalytics, { viewableType?: string; viewableId?: string; startDate?: string; endDate?: string } | void>({
+    getViewAnalytics: builder.query<ViewAnalytics, { viewableType?: string; viewableId?: string; startDate?: string; endDate?: string; page?: number; limit?: number } | void>({
       query: (params) => ({
         url: '/views/analytics',
         params: params || {},

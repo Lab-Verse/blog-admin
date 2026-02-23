@@ -199,10 +199,10 @@ export default function UsersPageComponent({
                 >
                   <CardContent className={`p-6 ${viewMode === 'list' ? 'flex-1 flex items-center justify-between p-0' : ''}`}>
                     <div className={`flex items-center gap-4 ${viewMode === 'list' ? 'w-1/3' : 'mb-6'}`}>
-                      {user.avatarUrl ? (
+                      {user.profile?.profile_picture ? (
                         <Image
-                          src={user.avatarUrl}
-                          alt={user.name}
+                          src={user.profile?.profile_picture || ''}
+                          alt={user.username || 'User'}
                           width={48}
                           height={48}
                           className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-md group-hover:scale-105 transition-transform"

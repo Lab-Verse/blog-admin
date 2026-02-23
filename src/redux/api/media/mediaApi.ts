@@ -25,6 +25,33 @@ export const mediaApi = baseApi.injectEndpoints({
         method: 'GET',
         params: params ?? undefined,
       }),
+      transformResponse: (response: any) => {
+        const mapMedia = (item: any): Media => ({
+          id: item.id,
+          url: item.file_url || item.url,
+          type: item.type || 'image',
+          filename: item.filename,
+          mimeType: item.mime_type || item.mimeType,
+          size: item.file_size || item.size,
+          title: item.title,
+          altText: item.altText,
+          description: item.description,
+          folder: item.folder,
+          ownerId: item.user_id || item.ownerId,
+          createdAt: item.created_at || item.createdAt,
+          updatedAt: item.updated_at || item.updatedAt,
+        });
+
+        if (Array.isArray(response)) {
+          return response.map(mapMedia);
+        }
+        return {
+          items: response.items?.map(mapMedia) || [],
+          total: response.total || 0,
+          page: response.page || 1,
+          limit: response.limit || 24,
+        };
+      },
       providesTags: (result) =>
         getMediaItems(result).length > 0
           ? [
@@ -49,7 +76,7 @@ export const mediaApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // POST /media  (file upload with FormData)
+    // POST /media/upload  (file upload with FormData)
     uploadMedia: builder.mutation<Media, UploadMediaPayload>({
       query: ({ file, data }) => {
         const formData = new FormData();
@@ -63,11 +90,26 @@ export const mediaApi = baseApi.injectEndpoints({
         }
 
         return {
-          url: '/media',
+          url: '/media/upload',
           method: 'POST',
           body: formData,
         };
       },
+      transformResponse: (response: any): Media => ({
+        id: response.id,
+        url: response.file_url || response.url,
+        type: response.type || 'image',
+        filename: response.filename,
+        mimeType: response.mime_type || response.mimeType,
+        size: response.file_size || response.size,
+        title: response.title,
+        altText: response.altText,
+        description: response.description,
+        folder: response.folder,
+        ownerId: response.user_id || response.ownerId,
+        createdAt: response.created_at || response.createdAt,
+        updatedAt: response.updated_at || response.updatedAt,
+      }),
       invalidatesTags: [{ type: 'Media', id: 'LIST' }],
     }),
 

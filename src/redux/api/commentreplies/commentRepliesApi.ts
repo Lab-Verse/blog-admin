@@ -3,28 +3,46 @@
 import { baseApi } from '../baseApi';
 import type {
   CommentReply,
+  CommentReplyStatus,
   CreateCommentReplyDto,
-  GetCommentRepliesQuery,
-  PaginatedCommentRepliesResponse,
   UpdateCommentReplyDto,
 } from '../../types/commentreplies/commentReplies.types';
+
+const getReplyAuthorName = (user: any): string | undefined => {
+  if (!user) return undefined;
+  return user.display_name || user.username || user.name || user.email;
+};
 
 export const commentRepliesApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // GET /comment-replies
-    getCommentReplies: builder.query<
-      PaginatedCommentRepliesResponse,
-      GetCommentRepliesQuery | void
-    >({
-      query: (params) => ({
-        url: '/comment-replies',
+    getCommentReplies: builder.query<CommentReply[], { commentId: string }>({
+      query: ({ commentId }) => ({
+        url: `/comment-replies/comment/${commentId}`,
         method: 'GET',
-        params: params === undefined ? undefined : params,
       }),
+      transformResponse: (response: any[]) => {
+        return response.map((reply: any) => ({
+          id: reply.id,
+          commentId: reply.comment_id,
+          authorId: reply.user_id,
+          content: reply.content,
+          status: 'visible' as CommentReplyStatus,
+          createdAt: reply.created_at,
+          updatedAt: reply.updated_at,
+          author: reply.user
+            ? {
+                id: reply.user.id,
+                name: getReplyAuthorName(reply.user),
+                avatarUrl: reply.user.avatar_url,
+              }
+            : undefined,
+        }));
+      },
       providesTags: (result) =>
         result
           ? [
-            ...result.items.map((reply) => ({
+            ...result.map((reply) => ({
               type: 'Comment' as const,
               id: reply.id,
             })),
@@ -50,7 +68,26 @@ export const commentRepliesApi = baseApi.injectEndpoints({
       query: (body) => ({
         url: '/comment-replies',
         method: 'POST',
-        body,
+        body: {
+          comment_id: body.commentId,
+          content: body.content,
+        },
+      }),
+      transformResponse: (reply: any) => ({
+        id: reply.id,
+        commentId: reply.comment_id,
+        authorId: reply.user_id,
+        content: reply.content,
+        status: 'visible' as CommentReplyStatus,
+        createdAt: reply.created_at,
+        updatedAt: reply.updated_at,
+        author: reply.user
+          ? {
+              id: reply.user.id,
+              name: getReplyAuthorName(reply.user),
+              avatarUrl: reply.user.avatar_url,
+            }
+          : undefined,
       }),
       invalidatesTags: [{ type: 'Comment', id: 'REPLIES' }],
     }),

@@ -17,6 +17,16 @@ export interface Answer {
   status: AnswerStatus;
   createdAt?: string;
   updatedAt?: string;
+  question?: {
+    id: string;
+    title?: string;
+  };
+  user?: {
+    id: string;
+    username?: string;
+    display_name?: string;
+    email?: string;
+  };
 }
 
 export interface PaginatedAnswersResponse {
@@ -39,6 +49,8 @@ export interface GetAnswersQuery {
 export interface CreateAnswerDto {
   content: string;
   questionId: string;
+  userId: string;
+  isAccepted?: boolean;
 }
 
 export interface UpdateAnswerDto {

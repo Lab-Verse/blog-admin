@@ -34,11 +34,35 @@ export default function Page() {
         media_ids?: string[];
     }) => {
         try {
-            await updatePost({ id, body: data }).unwrap();
+            if (data.featured_image instanceof File) {
+                const formData = new FormData();
+                formData.append('title', data.title);
+                formData.append('slug', data.slug);
+                formData.append('content', data.content);
+                formData.append('excerpt', data.excerpt);
+                formData.append('description', data.description);
+                formData.append('category_id', data.category_id);
+                formData.append('status', data.status);
+                formData.append('featured_image', data.featured_image);
+                
+                if (data.tag_ids && data.tag_ids.length > 0) {
+                    formData.append('tag_ids', JSON.stringify(data.tag_ids));
+                }
+                if (data.media_ids && data.media_ids.length > 0) {
+                    formData.append('media_ids', JSON.stringify(data.media_ids));
+                }
+                
+                await updatePost({ id, body: formData }).unwrap();
+            } else {
+                await updatePost({ id, body: data as any }).unwrap();
+            }
             router.push('/posts');
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to update post:', error);
-            alert('Failed to update post');
+            console.error('Error status:', error?.status);
+            console.error('Error data:', error?.data);
+            const errorMessage = error?.data?.message || error?.error || error?.message || 'Failed to update post';
+            alert(errorMessage);
         }
     };
 

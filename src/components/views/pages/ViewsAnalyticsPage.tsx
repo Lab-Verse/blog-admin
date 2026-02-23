@@ -4,6 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import { BarChart3, AlertCircle, TrendingUp, Users, Calendar, Eye } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { useGetViewAnalyticsQuery, useGetViewStatsQuery } from '@/redux/api/view/viewsApi';
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -41,46 +42,49 @@ export const ViewsAnalyticsPage: React.FC<ViewsAnalyticsPageProps> = ({
     viewableType,
     viewableId,
 }) => {
-    // Mock data for demonstration
-    const stats = {
-        total: 15420,
-        uniqueUsers: 8920,
-        today: 450,
-        thisWeek: 3200,
-        authenticated: 12000,
-        anonymous: 3420,
+    const [recentPage, setRecentPage] = React.useState(1);
+    const recentLimit = 10;
+
+    const queryArg = viewableType && viewableId
+        ? { viewableType, viewableId, page: recentPage, limit: recentLimit }
+        : { page: recentPage, limit: recentLimit };
+
+    const {
+        data: stats,
+        isLoading: isLoadingStats,
+        error: statsError,
+    } = useGetViewStatsQuery(queryArg);
+
+    const {
+        data: analytics,
+        isLoading: isLoadingAnalytics,
+        error: analyticsError,
+    } = useGetViewAnalyticsQuery(queryArg);
+
+    const isLoading = isLoadingStats || isLoadingAnalytics;
+    const error = statsError || analyticsError;
+
+    const getUserDisplayName = (user: any) => {
+        if (!user) return 'Anonymous User';
+        return user.display_name || user.username || user.name || user.email || 'Anonymous User';
     };
 
-    const analytics = {
-        averageViewsPerDay: 215.5,
-        peakViewDate: '2025-12-01',
-        recentViews: [
-            {
-                id: '1',
-                user: { name: 'John Doe', avatarUrl: null },
-                viewable_type: 'post',
-                viewable_id: '123',
-                created_at: new Date(now).toISOString(),
-            },
-            {
-                id: '2',
-                user: { name: 'Jane Smith', avatarUrl: null },
-                viewable_type: 'post',
-                viewable_id: '456',
-                created_at: new Date(now - 300000).toISOString(),
-            },
-            {
-                id: '3',
-                user: null,
-                viewable_type: 'category',
-                viewable_id: '789',
-                created_at: new Date(now - 600000).toISOString(),
-            },
-        ],
+    const getUserAvatar = (user: any): string | undefined => {
+        if (!user) return undefined;
+        return user.avatar_url || user.avatarUrl || user.profile?.profile_picture;
     };
 
-    const isLoading = false;
-    const error = null;
+    const viewsByDayEntries = Object.entries(analytics?.viewsByDay || {})
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .slice(-7);
+
+    const chartLabels = viewsByDayEntries.length > 0
+        ? viewsByDayEntries.map(([date]) => new Date(date).toLocaleDateString(undefined, { weekday: 'short' }))
+        : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    const chartValues = viewsByDayEntries.length > 0
+        ? viewsByDayEntries.map(([, count]) => count)
+        : [0, 0, 0, 0, 0, 0, 0];
 
     if (isLoading) {
         return (
@@ -127,11 +131,11 @@ export const ViewsAnalyticsPage: React.FC<ViewsAnalyticsPageProps> = ({
 
     // Chart Data Preparation
     const viewsOverTimeData = {
-        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], // Placeholder, replace with real dates if available in analytics
+        labels: chartLabels,
         datasets: [
             {
                 label: 'Views',
-                data: [stats.thisWeek || 0, stats.today || 0, 150, 200, 180, 250, 300], // Placeholder data
+                data: chartValues,
                 borderColor: 'rgb(79, 70, 229)',
                 backgroundColor: 'rgba(79, 70, 229, 0.1)',
                 fill: true,
@@ -204,10 +208,10 @@ export const ViewsAnalyticsPage: React.FC<ViewsAnalyticsPageProps> = ({
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {[
-                        { label: 'Total Views', value: stats.total || 0, icon: Eye, color: 'text-blue-600', bg: 'bg-blue-50' },
-                        { label: 'Unique Visitors', value: stats.uniqueUsers || 0, icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                        { label: 'Today', value: stats.today || 0, icon: TrendingUp, color: 'text-purple-600', bg: 'bg-purple-50' },
-                        { label: 'This Week', value: stats.thisWeek || 0, icon: Calendar, color: 'text-orange-600', bg: 'bg-orange-50' },
+                        { label: 'Total Views', value: stats?.total || 0, icon: Eye, color: 'text-blue-600', bg: 'bg-blue-50' },
+                        { label: 'Unique Visitors', value: stats?.uniqueUsers || 0, icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+                        { label: 'Today', value: stats?.today || 0, icon: TrendingUp, color: 'text-purple-600', bg: 'bg-purple-50' },
+                        { label: 'This Week', value: stats?.thisWeek || 0, icon: Calendar, color: 'text-orange-600', bg: 'bg-orange-50' },
                     ].map((stat, i) => (
                         <Card key={i} className="border-0 shadow-sm hover:shadow-md transition-all duration-300">
                             <CardContent className="p-6 flex items-center justify-between">
@@ -244,24 +248,24 @@ export const ViewsAnalyticsPage: React.FC<ViewsAnalyticsPageProps> = ({
                                     <div>
                                         <div className="flex justify-between text-sm mb-2">
                                             <span className="text-slate-600">Authenticated</span>
-                                            <span className="font-medium text-slate-900">{(stats.authenticated || 0).toLocaleString()}</span>
+                                            <span className="font-medium text-slate-900">{(stats?.authenticated || 0).toLocaleString()}</span>
                                         </div>
                                         <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                                             <div
                                                 className="h-full bg-blue-500 rounded-full"
-                                                style={{ width: `${(stats.total || 0) > 0 ? ((stats.authenticated || 0) / (stats.total || 1)) * 100 : 0}%` }}
+                                                style={{ width: `${(stats?.total || 0) > 0 ? (((stats?.authenticated || 0) / (stats?.total || 1)) * 100) : 0}%` }}
                                             />
                                         </div>
                                     </div>
                                     <div>
                                         <div className="flex justify-between text-sm mb-2">
                                             <span className="text-slate-600">Anonymous</span>
-                                            <span className="font-medium text-slate-900">{(stats.anonymous || 0).toLocaleString()}</span>
+                                            <span className="font-medium text-slate-900">{(stats?.anonymous || 0).toLocaleString()}</span>
                                         </div>
                                         <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                                             <div
                                                 className="h-full bg-slate-400 rounded-full"
-                                                style={{ width: `${(stats.total || 0) > 0 ? ((stats.anonymous || 0) / (stats.total || 1)) * 100 : 0}%` }}
+                                                style={{ width: `${(stats?.total || 0) > 0 ? (((stats?.anonymous || 0) / (stats?.total || 1)) * 100) : 0}%` }}
                                             />
                                         </div>
                                     </div>
@@ -295,18 +299,20 @@ export const ViewsAnalyticsPage: React.FC<ViewsAnalyticsPageProps> = ({
                                     <div key={index} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
                                         <div className="flex items-center gap-4">
                                             <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm text-lg">
-                                                {view.user?.avatarUrl ? (
-                                                    <Image src={view.user.avatarUrl} alt="User avatar" width={40} height={40} className="w-full h-full rounded-full object-cover" />
+                                                {getUserAvatar(view.user) ? (
+                                                    <Image src={getUserAvatar(view.user) as string} alt="User avatar" width={40} height={40} className="w-full h-full rounded-full object-cover" />
                                                 ) : (
                                                     '👤'
                                                 )}
                                             </div>
                                             <div>
                                                 <p className="font-medium text-slate-900">
-                                                    {view.user?.name || 'Anonymous User'}
+                                                    {getUserDisplayName(view.user)}
                                                 </p>
                                                 <p className="text-sm text-slate-500">
-                                                    viewed {view.viewable_type} #{view.viewable_id}
+                                                    {view.viewable_type === 'post'
+                                                        ? `viewed ${view.post?.title || 'post'}`
+                                                        : `viewed ${view.viewable_type}`}
                                                 </p>
                                             </div>
                                         </div>
@@ -315,6 +321,30 @@ export const ViewsAnalyticsPage: React.FC<ViewsAnalyticsPageProps> = ({
                                         </span>
                                     </div>
                                 ))}
+
+                                {((analytics.recentViewsPages || 1) > 1) && (
+                                    <div className="flex items-center justify-between pt-2">
+                                        <p className="text-sm text-slate-500">
+                                            Page {analytics.recentViewsPage || recentPage} of {analytics.recentViewsPages}
+                                        </p>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                onClick={() => setRecentPage((prev) => Math.max(1, prev - 1))}
+                                                disabled={(analytics.recentViewsPage || recentPage) <= 1}
+                                                className="px-3 py-1.5 text-sm rounded-lg border border-slate-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50"
+                                            >
+                                                Previous
+                                            </button>
+                                            <button
+                                                onClick={() => setRecentPage((prev) => Math.min((analytics.recentViewsPages || prev), prev + 1))}
+                                                disabled={(analytics.recentViewsPage || recentPage) >= (analytics.recentViewsPages || 1)}
+                                                className="px-3 py-1.5 text-sm rounded-lg border border-slate-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50"
+                                            >
+                                                Next
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </CardContent>
                     </Card>

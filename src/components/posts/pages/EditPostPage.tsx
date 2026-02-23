@@ -52,7 +52,9 @@ export default function EditPostPage({ post, categories, tags, mediaList, onSubm
                             status: post.status,
                             featured_image: post.featured_image || '',
                             tag_ids: post.tags?.map((tag) => tag.id) || [],
-                            media_ids: post.media?.map((media) => media.id) || [],
+                            media_ids: (post.media || [])
+                                .map((media: any) => media?.id || media?.media_id || media?.media?.id)
+                                .filter(Boolean),
                         }}
                         categories={categories}
                         tags={tags}

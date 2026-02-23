@@ -18,7 +18,7 @@ export default function Page() {
   };
 
   const handleDelete = async () => {
-    if (user && confirm(`Are you sure you want to delete ${user.name}?`)) {
+    if (user && confirm(`Are you sure you want to delete ${user.username || user.email}?`)) {
       try {
         await deleteUser(id).unwrap();
         router.push('/users');

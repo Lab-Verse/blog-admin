@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { skipToken } from '@reduxjs/toolkit/query';
 import { useGetCommentRepliesQuery, useDeleteCommentReplyMutation } from '@/redux/api/commentreplies/commentRepliesApi';
 import type { CommentReply as ApiCommentReply } from '@/redux/types/commentreplies/commentReplies.types';
 import { useAppSelector } from '@/redux/hooks';
@@ -24,16 +25,9 @@ export default function CommentRepliesPage() {
   const [status, setStatus] = useState<CommentReplyStatus | 'all'>('all');
   const [search, setSearch] = useState<string>('');
 
-  const query = {
-    page,
-    limit,
-    ...(commentId && { commentId }),
-    ...(userId && { userId }),
-    ...(status !== 'all' && { isApproved: status === CommentReplyStatus.VISIBLE }),
-    ...(search && { search }),
-  };
+  const queryArg = commentId ? { commentId } : skipToken;
 
-  const { data, isFetching, refetch } = useGetCommentRepliesQuery(query);
+  const { data, isFetching, refetch } = useGetCommentRepliesQuery(queryArg);
   const isLoading = useAppSelector(selectCommentRepliesLoading);
   const error = useAppSelector(selectCommentRepliesError);
 
@@ -121,7 +115,7 @@ export default function CommentRepliesPage() {
           ) : data ? (
             <>
               <CommentRepliesTable
-                replies={data.items.map((item: ApiCommentReply): ComponentCommentReply => ({
+                replies={data.map((item: ApiCommentReply): ComponentCommentReply => ({
                   id: item.id,
                   commentId: item.commentId,
                   authorId: item.authorId,
@@ -140,7 +134,7 @@ export default function CommentRepliesPage() {
               />
               <div className="flex items-center justify-between mt-4">
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Showing {data.items.length} of {data.total} replies
+                  Showing {data.length} replies
                 </p>
                 <div className="flex items-center space-x-2">
                   <Button
@@ -152,13 +146,13 @@ export default function CommentRepliesPage() {
                     Previous
                   </Button>
                   <span className="text-sm">
-                    Page {page} of {Math.ceil(data.total / limit)}
+                    Page {page}
                   </span>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handlePageChange(page + 1)}
-                    disabled={page >= Math.ceil(data.total / limit) || isFetching}
+                    disabled={isFetching}
                   >
                     Next
                   </Button>

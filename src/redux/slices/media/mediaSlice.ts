@@ -39,10 +39,7 @@ const mediaSlice = createSlice({
       .addMatcher(
         mediaApi.endpoints.getMedia.matchFulfilled,
         (state, { payload }) => {
-          state.list = payload.items;
-          state.total = payload.total;
-          state.page = payload.page;
-          state.limit = payload.limit;
+          state.list = Array.isArray(payload) ? payload : (payload as any).items || [];
           state.isLoading = false;
         },
       )
@@ -71,6 +68,7 @@ const mediaSlice = createSlice({
     builder.addMatcher(
       mediaApi.endpoints.uploadMedia.matchFulfilled,
       (state, { payload }) => {
+        if (!state.list) state.list = [];
         state.list.unshift(payload);
         state.total += 1;
       },

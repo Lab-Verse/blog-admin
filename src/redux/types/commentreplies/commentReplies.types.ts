@@ -42,6 +42,7 @@ export interface GetCommentRepliesQuery {
 
 export interface CreateCommentReplyDto {
   commentId: string;
+  userId?: string;
   content: string;
   // authorId usually comes from authenticated user on backend
 }

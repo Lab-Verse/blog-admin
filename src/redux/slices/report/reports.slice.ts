@@ -58,7 +58,7 @@ const reportsSlice = createSlice({
         reportsApi.endpoints.getReports.matchFulfilled,
         (state, action) => {
           state.loading = false;
-          state.items = action.payload;
+          state.items = action.payload || [];
         },
       )
       .addMatcher(

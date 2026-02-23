@@ -147,9 +147,9 @@ export default function CategoriesPageComponent({
                   <div className="flex items-center gap-4">
                     <div
                       className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm transition-transform group-hover:scale-110 duration-300"
-                      style={{ backgroundColor: `${category.color}20` || '#e2e8f0' }}
+                      style={{ backgroundColor: '#e2e8f0' }}
                     >
-                      <FolderOpen className="w-6 h-6" style={{ color: category.color || '#64748b' }} />
+                      <FolderOpen className="w-6 h-6" style={{ color: '#64748b' }} />
                     </div>
                     <div>
                       <h3 className="font-bold text-lg text-slate-900 group-hover:text-primary-600 transition-colors">{category.name}</h3>

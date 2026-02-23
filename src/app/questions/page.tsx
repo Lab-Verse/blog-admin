@@ -1,8 +1,14 @@
-import { QuestionsPage } from '@/components/questions';
+"use client";
 
-// Example: Get user ID from your auth system
-const CURRENT_USER_ID = 'user-123'; // Replace with actual user ID from session/auth
+import { QuestionsPage } from '@/components/questions';
+import { useAppSelector } from '@/redux/hooks';
+import { selectCurrentUserId, selectAuthLoading, selectIsAuthenticated, selectAccessToken } from '@/redux/selectors/auth/authSelectors';
 
 export default function QuestionsRoute() {
-    return <QuestionsPage userId={CURRENT_USER_ID} />;
+    const userId = useAppSelector(selectCurrentUserId);
+    const isAuthLoading = useAppSelector(selectAuthLoading);
+    const isAuthenticated = useAppSelector(selectIsAuthenticated);
+    const accessToken = useAppSelector(selectAccessToken);
+
+    return <QuestionsPage userId={userId} isUserLoading={isAuthLoading} />;
 }

@@ -46,7 +46,7 @@ export interface GetCommentsQuery {
 export interface CreateCommentDto {
   postId: string;
   content: string;
-  // authorId usually comes from auth user on backend
+  // user_id is sent from backend when authenticated
 }
 
 export interface UpdateCommentDto {

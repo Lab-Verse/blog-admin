@@ -32,9 +32,10 @@ import { AlertCircle } from 'lucide-react';
 
 interface QuestionsPageProps {
     userId: string; // Current user ID for creating questions
+    isUserLoading?: boolean; // Whether user auth is still loading
 }
 
-export const QuestionsPage: React.FC<QuestionsPageProps> = ({ userId }) => {
+export const QuestionsPage: React.FC<QuestionsPageProps> = ({ userId, isUserLoading = false }) => {
     const dispatch = useDispatch();
     const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -90,9 +91,15 @@ export const QuestionsPage: React.FC<QuestionsPageProps> = ({ userId }) => {
             }
             setIsFormModalOpen(false);
             setQuestionToEdit(null);
-        } catch (err) {
-            console.error('Failed to save question:', err);
-            throw err;
+        } catch (err: any) {
+            console.error('Failed to save question:', {
+                error: err,
+                message: err?.message,
+                data: err?.data,
+                status: err?.status,
+                payload: data,
+            });
+            alert(`Failed to save question: ${err?.data?.message || err?.message || 'Unknown error'}`);
         }
     };
 
@@ -208,6 +215,7 @@ export const QuestionsPage: React.FC<QuestionsPageProps> = ({ userId }) => {
                     question={questionToEdit}
                     isLoading={isCreating || isUpdating}
                     userId={userId}
+                    isUserLoading={isUserLoading}
                 />
 
                 {/* Deleting Overlay */}

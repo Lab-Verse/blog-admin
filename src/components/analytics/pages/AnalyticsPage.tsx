@@ -35,6 +35,13 @@ import {
     ArcElement,
 } from 'chart.js';
 import { Line, Doughnut } from 'react-chartjs-2';
+import {
+    useGetDashboardStatsQuery,
+    useGetTrafficDataQuery,
+    useGetDashboardAuditLogsQuery,
+    AuditLogItem,
+} from '@/redux/api/dashboard/dashboardApi';
+import { AuditLogDetailModal } from '@/components/audit-logs/AuditLogDetailModal';
 
 ChartJS.register(
     CategoryScale,
@@ -53,24 +60,42 @@ type AnalyticsPageProps = Record<string, never>;
 
 export const AnalyticsPage: React.FC<AnalyticsPageProps> = () => {
     const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | '1y'>('30d');
-    const [isLoading, setIsLoading] = useState(false);
     const [lastUpdated, setLastUpdated] = useState(() => new Date());
+    const [selectedAuditLog, setSelectedAuditLog] = useState<AuditLogItem | null>(null);
 
-    // Mock data - replace with real API calls
+    // Get the number of days based on time range
+    const getDays = (range: typeof timeRange) => {
+        switch (range) {
+            case '7d': return 7;
+            case '30d': return 30;
+            case '90d': return 90;
+            case '1y': return 365;
+            default: return 30;
+        }
+    };
+
+    // Fetch real data from API
+    const { data: statsData, isLoading: statsLoading, refetch: refetchStats } = useGetDashboardStatsQuery();
+    const { data: trafficData, isLoading: trafficLoading, refetch: refetchTraffic } = useGetTrafficDataQuery(getDays(timeRange));
+    const { data: auditLogs, isLoading: auditLogsLoading, refetch: refetchAuditLogs } = useGetDashboardAuditLogsQuery(10);
+
+    const isLoading = statsLoading || trafficLoading;
+
+    // Use mock data as fallback
     const analyticsData = {
-        overview: {
-            totalUsers: 12543,
-            activeUsers: 8921,
-            totalPosts: 3456,
-            totalViews: 234567,
+        overview: statsData?.overview || {
+            totalUsers: 0,
+            activeUsers: 0,
+            totalPosts: 0,
+            totalViews: 0,
             growth: {
-                users: 12.5,
-                posts: 8.3,
-                views: 15.7
+                users: 0,
+                posts: 0,
+                views: 0
             }
         },
         traffic: {
-            daily: [1200, 1350, 1180, 1420, 1380, 1520, 1680, 1450, 1620, 1580, 1720, 1850, 1780, 1920, 1880, 1950, 2100, 2050, 2180, 2120, 2250, 2200, 2350, 2280, 2400, 2450, 2380, 2520, 2480, 2550],
+            daily: trafficData?.daily || [],
             sources: {
                 direct: 45,
                 search: 30,
@@ -103,24 +128,58 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = () => {
         }
     };
 
+    // Helper function to format action names for display
+    const formatActionName = (action: string): string => {
+        const actionMap: { [key: string]: string } = {
+            'CREATE_POST': 'Created a post',
+            'UPDATE_POST': 'Updated a post',
+            'DELETE_POST': 'Deleted a post',
+            'VIEW_POST': 'Viewed a post',
+            'CREATE_COMMENT': 'Created a comment',
+            'UPDATE_COMMENT': 'Updated a comment',
+            'DELETE_COMMENT': 'Deleted a comment',
+            'CREATE_USER': 'Created a user',
+            'UPDATE_USER': 'Updated a user',
+            'DELETE_USER': 'Deleted a user',
+            'LOGIN': 'Logged in',
+            'LOGOUT': 'Logged out',
+            'CREATE_CATEGORY': 'Created a category',
+            'UPDATE_CATEGORY': 'Updated a category',
+            'DELETE_CATEGORY': 'Deleted a category',
+            'CREATE_TAG': 'Created a tag',
+            'UPDATE_TAG': 'Updated a tag',
+            'DELETE_TAG': 'Deleted a tag',
+            'CREATE_MEDIA': 'Uploaded media',
+            'DELETE_MEDIA': 'Deleted media',
+            'CREATE_DRAFT': 'Created a draft',
+            'UPDATE_DRAFT': 'Updated a draft',
+            'DELETE_DRAFT': 'Deleted a draft',
+        };
+        return actionMap[action] || action.toLowerCase().replace(/_/g, ' ');
+    };
+
     const refreshData = useCallback(async () => {
-        setIsLoading(true);
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1500));
         setLastUpdated(new Date());
-        setIsLoading(false);
-    }, []);
+        await Promise.all([
+            refetchStats(),
+            refetchTraffic(),
+            refetchAuditLogs(),
+        ]);
+    }, [refetchStats, refetchTraffic, refetchAuditLogs]);
 
     useEffect(() => {
         // Initial data load - no setState here
     }, []);
 
     // Chart configurations
+    const days = getDays(timeRange);
     const trafficChartData = {
-        labels: Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`),
+        labels: Array.from({ length: days }, (_, i) => `Day ${i + 1}`),
         datasets: [{
             label: 'Daily Visitors',
-            data: analyticsData.traffic.daily,
+            data: analyticsData.traffic.daily.length > 0 
+                ? analyticsData.traffic.daily 
+                : Array(days).fill(0),
             borderColor: 'rgb(79, 70, 229)',
             backgroundColor: 'rgba(79, 70, 229, 0.1)',
             fill: true,
@@ -480,7 +539,84 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = () => {
                         </div>
                     </CardContent>
                 </Card>
+
+                {/* Recent Activity (Audit Logs) */}
+                <Card className="border-0 shadow-lg">
+                    <CardHeader>
+                        <div className="flex items-center justify-between">
+                            <CardTitle className="flex items-center gap-2">
+                                <Activity className="w-5 h-5 text-blue-600" />
+                                Recent Activity (Audit Logs)
+                            </CardTitle>
+                            {auditLogs && auditLogs.length > 0 && (
+                                <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                                    {auditLogs.length} Recent
+                                </Badge>
+                            )}
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        {auditLogsLoading ? (
+                            <div className="space-y-4">
+                                {[1, 2, 3, 4, 5].map((i) => (
+                                    <div key={i} className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl animate-pulse">
+                                        <div className="w-10 h-10 bg-slate-200 rounded-full"></div>
+                                        <div className="flex-1 space-y-2">
+                                            <div className="h-4 bg-slate-200 rounded w-3/4"></div>
+                                            <div className="h-3 bg-slate-200 rounded w-1/2"></div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : auditLogs && auditLogs.length > 0 ? (
+                            <div className="space-y-3">
+                                {auditLogs.map((log) => (
+                                    <div 
+                                        key={log.id} 
+                                        className="flex items-start gap-4 p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
+                                        onClick={() => setSelectedAuditLog(log)}
+                                    >
+                                        <div className="p-2 bg-white rounded-lg shadow-sm">
+                                            <Activity className="w-4 h-4 text-blue-600" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="font-semibold text-slate-900">
+                                                    {log.user?.name || log.user?.email || 'System'}
+                                                </span>
+                                                <Badge variant="outline" className="text-xs">
+                                                    {log.action}
+                                                </Badge>
+                                            </div>
+                                            <div className="text-sm text-slate-700 mb-1">
+                                                {formatActionName(log.action)}
+                                            </div>
+                                            <div className="text-xs text-slate-400">
+                                                {new Date(log.created_at).toLocaleString()}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-12">
+                                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <Activity className="w-8 h-8 text-slate-400" />
+                                </div>
+                                <h3 className="text-lg font-semibold text-slate-900 mb-2">No Recent Activity</h3>
+                                <p className="text-slate-600">Audit logs will appear here once there is activity.</p>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
             </div>
+
+            {/* Audit Log Detail Modal */}
+            <AuditLogDetailModal
+                auditLog={selectedAuditLog}
+                isOpen={!!selectedAuditLog}
+                onClose={() => setSelectedAuditLog(null)}
+            />
         </div>
     );
 };

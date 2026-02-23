@@ -122,8 +122,8 @@ export default function DashboardComponent({ stats, activity, isLoading }: Dashb
     const statCards = [
         {
             title: 'Total Posts',
-            value: stats?.totalPosts || 0,
-            change: '+12.5%',
+            value: stats?.overview?.totalPosts || 0,
+            change: `+${stats?.overview?.growth?.posts || 0}%`,
             trend: 'up',
             icon: FileText,
             color: 'text-blue-600',
@@ -132,8 +132,8 @@ export default function DashboardComponent({ stats, activity, isLoading }: Dashb
         },
         {
             title: 'Total Users',
-            value: stats?.totalUsers || 0,
-            change: '+8.2%',
+            value: stats?.overview?.totalUsers || 0,
+            change: `+${stats?.overview?.growth?.users || 0}%`,
             trend: 'up',
             icon: Users,
             color: 'text-emerald-600',
@@ -142,8 +142,8 @@ export default function DashboardComponent({ stats, activity, isLoading }: Dashb
         },
         {
             title: 'Total Views',
-            value: stats?.totalViews || 0,
-            change: '+24.3%',
+            value: stats?.overview?.totalViews || 0,
+            change: `+${stats?.overview?.growth?.views || 0}%`,
             trend: 'up',
             icon: Eye,
             color: 'text-purple-600',
@@ -151,11 +151,11 @@ export default function DashboardComponent({ stats, activity, isLoading }: Dashb
             chartColor: '#8b5cf6'
         },
         {
-            title: 'Comments',
-            value: stats?.totalComments || 0,
-            change: '-2.4%',
-            trend: 'down',
-            icon: MessageSquare,
+            title: 'Active Users',
+            value: stats?.overview?.activeUsers || 0,
+            change: `+${stats?.overview?.growth?.users || 0}%`,
+            trend: 'up',
+            icon: Activity,
             color: 'text-amber-600',
             bg: 'bg-amber-50',
             chartColor: '#f59e0b'

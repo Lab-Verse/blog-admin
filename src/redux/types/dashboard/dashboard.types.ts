@@ -1,5 +1,20 @@
 // Dashboard Statistics Types
 export interface DashboardStats {
+    overview: {
+        totalUsers: number;
+        activeUsers: number;
+        totalPosts: number;
+        totalViews: number;
+        growth: {
+            users: number;
+            posts: number;
+            views: number;
+        };
+    };
+}
+
+// Legacy Dashboard Stats (kept for backward compatibility)
+export interface LegacyDashboardStats {
     totalPosts: number;
     totalUsers: number;
     totalCategories: number;
@@ -128,7 +143,7 @@ export interface TimeSeriesData {
 
 // Dashboard Response Type
 export interface DashboardData {
-    stats: DashboardStats;
+    stats: DashboardStats | LegacyDashboardStats;
     recentActivity: ActivityItem[];
     recentPosts: RecentPost[];
     recentUsers: RecentUser[];

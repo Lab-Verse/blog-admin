@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Question, QuestionStatus, CreateQuestionRequest, UpdateQuestionRequest } from '@/redux/types/question/questions.types';
 import { X, Save } from 'lucide-react';
+import { useGetCategoriesQuery } from '@/redux/api/category/categoriesApi';
 
 interface QuestionFormModalProps {
     isOpen: boolean;
@@ -11,6 +12,7 @@ interface QuestionFormModalProps {
     question?: Question | null;
     isLoading?: boolean;
     userId: string; // Current user ID for creating questions
+    isUserLoading?: boolean; // Whether user auth is still loading
 }
 
 export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
@@ -20,7 +22,24 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
     question,
     isLoading = false,
     userId,
+    isUserLoading = false,
 }) => {
+    const { data: categoriesData, isLoading: isCategoriesLoading } = useGetCategoriesQuery({ page: 1, limit: 100 });
+    const categories = categoriesData?.items ?? [];
+
+    // Debug logging
+    useEffect(() => {
+        if (isOpen && process.env.NODE_ENV === 'development') {
+            console.log('[QuestionFormModal] Form opened with:', {
+                userId,
+                userIdLength: userId?.length,
+                isUserLoading,
+                isLoading,
+                isEmpty: !userId || !userId.trim(),
+            });
+        }
+    }, [isOpen, userId, isUserLoading]);
+
     const getInitialFormData = (): CreateQuestionRequest => {
         if (question) {
             return {
@@ -79,6 +98,10 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
             newErrors.title = 'Title is required';
         }
 
+        if (!formData.slug.trim()) {
+            newErrors.slug = 'Slug is required';
+        }
+
         if (!formData.content.trim()) {
             newErrors.content = 'Content is required';
         }
@@ -97,7 +120,13 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
         if (!validate()) return;
 
         try {
-            await onSubmit(formData);
+            // Use current-user as placeholder if userId not populated - backend will use JWT
+            const submitData = {
+                ...formData,
+                user_id: formData.user_id || 'current-user',
+            };
+
+            await onSubmit(submitData);
             onClose();
         } catch (error) {
             console.error('Failed to save question:', error);
@@ -105,7 +134,22 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
     };
 
     const handleChange = (field: keyof CreateQuestionRequest, value: string | QuestionStatus) => {
-        setFormData((prev) => ({ ...prev, [field]: value }));
+        setFormData((prev) => {
+            const updated = { ...prev, [field]: value };
+
+            // Auto-generate slug from title if title changed
+            if (field === 'title' && value) {
+                const slug = String(value)
+                    .toLowerCase()
+                    .trim()
+                    .replace(/[^\w\s-]/g, '')
+                    .replace(/\s+/g, '-')
+                    .replace(/-+/g, '-');
+                updated.slug = slug;
+            }
+
+            return updated;
+        });
         if (errors[field]) {
             setErrors((prev) => {
                 const newErrors = { ...prev };
@@ -189,18 +233,25 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
                     {/* Category ID */}
                     <div>
                         <label htmlFor="category_id" className="block text-sm font-semibold text-secondary-700 mb-2">
-                            Category ID <span className="text-danger-500">*</span>
+                            Category <span className="text-danger-500">*</span>
                         </label>
-                        <input
+                        <select
                             id="category_id"
-                            type="text"
                             value={formData.category_id}
                             onChange={(e) => handleChange('category_id', e.target.value)}
                             className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.category_id ? 'border-danger-500 focus:ring-danger-500' : 'border-secondary-200 focus:ring-primary-500'
                                 }`}
-                            placeholder="Enter category ID"
-                            disabled={isLoading}
-                        />
+                            disabled={isLoading || isCategoriesLoading}
+                        >
+                            <option value="">
+                                {isCategoriesLoading ? 'Loading categories...' : 'Select category'}
+                            </option>
+                            {categories.map((category) => (
+                                <option key={category.id} value={category.id}>
+                                    {category.name}
+                                </option>
+                            ))}
+                        </select>
                         {errors.category_id && <p className="mt-1 text-sm text-danger-600">{errors.category_id}</p>}
                     </div>
 
@@ -222,6 +273,8 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
                         </select>
                     </div>
 
+
+
                     {/* Action Buttons */}
                     <div className="flex gap-3 pt-4 border-t border-secondary-200">
                         <button
@@ -234,10 +287,10 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
                         </button>
                         <button
                             type="submit"
-                            disabled={isLoading}
+                            disabled={isLoading || isUserLoading}
                             className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-linear-to-r from-accent-600 to-primary-600 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:transform-none"
                         >
-                            {isLoading ? (
+                            {isLoading || isUserLoading ? (
                                 <>
                                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                                     <span>Saving...</span>

@@ -18,6 +18,10 @@ export interface View {
   ip_address: string;
   created_at: Date | string;
   user?: User;
+  post?: {
+    id: string;
+    title?: string;
+  };
 }
 
 // DTOs
@@ -79,6 +83,10 @@ export interface ViewAnalytics {
   viewsByDay: Record<string, number>;
   topViewers: User[];
   recentViews: View[];
+  recentViewsTotal?: number;
+  recentViewsPage?: number;
+  recentViewsLimit?: number;
+  recentViewsPages?: number;
 }
 
 export interface ViewTrackingConfig {

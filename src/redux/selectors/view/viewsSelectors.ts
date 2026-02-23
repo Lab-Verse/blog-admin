@@ -162,7 +162,7 @@ export const selectFilteredViews = createSelector(
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(v => 
         v.ip_address.toLowerCase().includes(query) ||
-        v.user?.name?.toLowerCase().includes(query) ||
+        v.user?.username?.toLowerCase().includes(query) ||
         v.user?.email?.toLowerCase().includes(query)
       );
     }
@@ -210,7 +210,7 @@ export const selectSortedAndFilteredViews = createSelector(
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(v => 
         v.ip_address.toLowerCase().includes(query) ||
-        v.user?.name?.toLowerCase().includes(query) ||
+        v.user?.username?.toLowerCase().includes(query) ||
         v.user?.email?.toLowerCase().includes(query)
       );
     }

@@ -61,62 +61,30 @@ export default function Page() {
                 <Card className="border-0 shadow-xl">
                     <div
                         className="h-3 w-full rounded-t-lg"
-                        style={{ backgroundColor: category.color || '#3B82F6' }}
+                        style={{ backgroundColor: '#3B82F6' }}
                     />
                     <CardHeader className="bg-gradient-to-r from-purple-50 to-blue-50 border-b">
                         <div className="flex items-center justify-between">
                             <CardTitle>Category Details</CardTitle>
-                            <CategoryStatusBadge isActive={category.isActive} />
+                            <CategoryStatusBadge isActive={category.is_active} />
                         </div>
                     </CardHeader>
                     <CardContent className="p-6 space-y-6">
-                        {/* Description */}
-                        {category.description && (
-                            <div>
-                                <h3 className="text-sm font-semibold text-gray-700 mb-2">Description</h3>
-                                <p className="text-gray-600">{category.description}</p>
-                            </div>
-                        )}
-
                         {/* Metadata Grid */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <h3 className="text-sm font-semibold text-gray-700 mb-2">Color</h3>
-                                <div className="flex items-center gap-3">
-                                    <div
-                                        className="w-12 h-12 rounded-lg border-2 border-gray-200"
-                                        style={{ backgroundColor: category.color || '#3B82F6' }}
-                                    />
-                                    <span className="font-mono text-sm text-gray-600">
-                                        {category.color || '#3B82F6'}
-                                    </span>
-                                </div>
-                            </div>
-
-                            {(category as any).postCount !== undefined && (
+                            {category.posts_count !== undefined && (
                                 <div>
                                     <h3 className="text-sm font-semibold text-gray-700 mb-2">Posts</h3>
                                     <div className="text-3xl font-bold text-gray-900">
-                                        {(category as any).postCount}
+                                        {category.posts_count}
                                     </div>
-                                </div>
-                            )}
-
-                            {category.iconUrl && (
-                                <div>
-                                    <h3 className="text-sm font-semibold text-gray-700 mb-2">Icon</h3>
-                                    <img
-                                        src={category.iconUrl}
-                                        alt={category.name}
-                                        className="w-12 h-12 object-contain"
-                                    />
                                 </div>
                             )}
 
                             <div>
                                 <h3 className="text-sm font-semibold text-gray-700 mb-2">Created</h3>
                                 <p className="text-gray-600">
-                                    {new Date(category.createdAt || new Date()).toLocaleDateString('en-US', {
+                                    {new Date(category.created_at).toLocaleDateString('en-US', {
                                         year: 'numeric',
                                         month: 'long',
                                         day: 'numeric',
@@ -127,7 +95,7 @@ export default function Page() {
                             <div>
                                 <h3 className="text-sm font-semibold text-gray-700 mb-2">Last Updated</h3>
                                 <p className="text-gray-600">
-                                    {new Date(category.updatedAt || new Date()).toLocaleDateString('en-US', {
+                                    {new Date(category.updated_at).toLocaleDateString('en-US', {
                                         year: 'numeric',
                                         month: 'long',
                                         day: 'numeric',

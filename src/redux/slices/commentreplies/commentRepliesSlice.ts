@@ -46,10 +46,8 @@ const commentRepliesSlice = createSlice({
       .addMatcher(
         commentRepliesApi.endpoints.getCommentReplies.matchFulfilled,
         (state, { payload }) => {
-          state.list = payload.items as unknown as WritableDraft<CommentReply>[];
-          state.total = payload.total;
-          state.page = payload.page;
-          state.limit = payload.limit;
+          state.list = payload as unknown as WritableDraft<CommentReply>[];
+          state.total = payload.length;
           state.isLoading = false;
         },
       )

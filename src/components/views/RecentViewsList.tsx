@@ -60,7 +60,7 @@ export const RecentViewsList: React.FC<RecentViewsListProps> = ({ views, maxItem
                                 {view.user ? (
                                     <div className="flex items-center gap-1 text-sm font-medium text-secondary-900">
                                         <User className="w-3.5 h-3.5" />
-                                        <span className="truncate">{view.user.name || 'User'}</span>
+                                        <span className="truncate">{view.user.username || view.user.email || 'User'}</span>
                                     </div>
                                 ) : (
                                     <span className="text-sm font-medium text-secondary-500">Anonymous</span>

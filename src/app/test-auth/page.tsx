@@ -26,9 +26,15 @@ export default function AuthTestPage() {
       addResult('🔄 Testing registration...');
       const result = await register({ username, email, password }).unwrap();
       addResult('✅ Registration successful!');
-      addResult(`   User: ${result.data.user.email}`);
-      addResult(`   Access Token: ${result.data.tokens.accessToken.substring(0, 30)}...`);
-      addResult(`   Refresh Token: ${result.data.tokens.refreshToken.substring(0, 30)}...`);
+      if (result?.data?.user?.email) {
+        addResult(`   User: ${result.data.user.email}`);
+      }
+      if (result?.data?.tokens?.accessToken) {
+        addResult(`   Access Token: ${result.data.tokens.accessToken.substring(0, 30)}...`);
+      }
+      if (result?.data?.tokens?.refreshToken) {
+        addResult(`   Refresh Token: ${result.data.tokens.refreshToken.substring(0, 30)}...`);
+      }
     } catch (error: any) {
       addResult('❌ Registration failed: ' + (error?.data?.message || error.message));
     }
@@ -39,9 +45,15 @@ export default function AuthTestPage() {
       addResult('🔄 Testing login...');
       const result = await login({ email, password }).unwrap();
       addResult('✅ Login successful!');
-      addResult(`   User: ${result.data.user.email}`);
-      addResult(`   Access Token: ${result.data.accessToken.substring(0, 30)}...`);
-      addResult(`   Refresh Token: ${result.data.refreshToken.substring(0, 30)}...`);
+      if (result?.data?.user?.email) {
+        addResult(`   User: ${result.data.user.email}`);
+      }
+      if (result?.data?.tokens?.accessToken) {
+        addResult(`   Access Token: ${result.data.tokens.accessToken.substring(0, 30)}...`);
+      }
+      if (result?.data?.tokens?.refreshToken) {
+        addResult(`   Refresh Token: ${result.data.tokens.refreshToken.substring(0, 30)}...`);
+      }
     } catch (error: any) {
       addResult('❌ Login failed: ' + (error?.data?.message || error.message));
     }
@@ -64,12 +76,16 @@ export default function AuthTestPage() {
       addResult('🔄 Step 1: Testing registration...');
       const registerResult = await register(testUser).unwrap();
       addResult('✅ Registration successful!');
-      addResult(`   User ID: ${registerResult.data.user.id}`);
+      if (registerResult?.data?.user?.id) {
+        addResult(`   User ID: ${registerResult.data.user.id}`);
+      }
       
       addResult('🔄 Step 2: Testing login...');
       const loginResult = await login({ email: testUser.email, password: testUser.password }).unwrap();
       addResult('✅ Login successful!');
-      addResult(`   User ID: ${loginResult.data.user.id}`);
+      if (loginResult?.data?.user?.id) {
+        addResult(`   User ID: ${loginResult.data.user.id}`);
+      }
       
       addResult('🎉 All tests passed! Redirecting to dashboard...');
       setTimeout(() => router.push('/dashboard'), 2000);
@@ -106,7 +122,7 @@ export default function AuthTestPage() {
             <Button onClick={testLogin} disabled={isLoggingIn}>
               {isLoggingIn ? 'Testing...' : 'Test Login'}
             </Button>
-            <Button onClick={testFullFlow} disabled={isRegistering || isLoggingIn} variant="default">
+            <Button onClick={testFullFlow} disabled={isRegistering || isLoggingIn} variant="primary">
               Test Full Flow
             </Button>
             <Button onClick={() => setTestResults([])} variant="outline">

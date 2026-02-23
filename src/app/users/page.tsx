@@ -30,7 +30,7 @@ export default function UsersPage() {
   };
 
   const handleDelete = async (user: User) => {
-    if (confirm(`Are you sure you want to delete user ${user.email || user.name || 'this user'}?`)) {
+    if (confirm(`Are you sure you want to delete user ${user.email || user.username || 'this user'}?`)) {
       await deleteUser(user.id);
     }
   };

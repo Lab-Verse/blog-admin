@@ -7,14 +7,14 @@ import { Eye, CheckCircle, XCircle, Calendar, User } from 'lucide-react';
 interface ReportCardProps {
     report: Report;
     onView: (report: Report) => void;
-    onResolve?: (report: Report) => void;
+    onAccept?: (report: Report) => void;
     onReject?: (report: Report) => void;
 }
 
 export const ReportCard: React.FC<ReportCardProps> = ({
     report,
     onView,
-    onResolve,
+    onAccept,
     onReject,
 }) => {
     const formatDate = (dateString: string) => {
@@ -28,9 +28,19 @@ export const ReportCard: React.FC<ReportCardProps> = ({
 
     const canTakeAction = report.status === ReportStatus.OPEN || report.status === ReportStatus.IN_REVIEW;
 
+    const handleCardClick = () => {
+        // If it's a post report, open the post directly
+        if (report.target_type === 'post' && report.post_id) {
+            window.open(`/posts/${report.post_id}`, '_blank');
+        } else {
+            // For other types, show the modal
+            onView(report);
+        }
+    };
+
     return (
         <div
-            onClick={() => onView(report)}
+            onClick={handleCardClick}
             className="group relative bg-white rounded-xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 cursor-pointer card-hover fade-in p-6"
         >
             {/* Header with Badges */}
@@ -73,30 +83,30 @@ export const ReportCard: React.FC<ReportCardProps> = ({
             )}
 
             {/* Action Buttons */}
-            {canTakeAction && (onResolve || onReject) && (
+            {canTakeAction && (onAccept || onReject) && (
                 <div className="flex gap-2 pt-4 border-t border-secondary-100">
-                    {onResolve && (
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onResolve(report);
-                            }}
-                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-accent-500 text-white text-sm font-medium rounded-lg hover:bg-accent-600 transition-all duration-300 transform hover:scale-105"
-                        >
-                            <CheckCircle className="w-4 h-4" />
-                            <span>Resolve</span>
-                        </button>
-                    )}
                     {onReject && (
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
                                 onReject(report);
                             }}
-                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-white border border-secondary-300 text-secondary-700 text-sm font-medium rounded-lg hover:bg-secondary-50 transition-all duration-300"
+                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-white border border-red-500 text-red-600 text-sm font-medium rounded-lg hover:bg-red-50 transition-all duration-300 transform hover:scale-105"
                         >
                             <XCircle className="w-4 h-4" />
                             <span>Reject</span>
+                        </button>
+                    )}
+                    {onAccept && report.target_type === 'post' && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onAccept(report);
+                            }}
+                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-all duration-300 transform hover:scale-105"
+                        >
+                            <CheckCircle className="w-4 h-4" />
+                            <span>Accept</span>
                         </button>
                     )}
                 </div>

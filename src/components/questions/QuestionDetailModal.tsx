@@ -4,6 +4,7 @@ import React, { useEffect } from 'react';
 import { Question } from '@/redux/types/question/questions.types';
 import { QuestionStatusBadge } from './QuestionStatusBadge';
 import { CategoryBadge } from './CategoryBadge';
+import { AnswersSection } from '../answers/AnswersSection';
 import { X, Edit, Trash2, Calendar, User } from 'lucide-react';
 
 interface QuestionDetailModalProps {
@@ -111,6 +112,12 @@ export const QuestionDetailModal: React.FC<QuestionDetailModalProps> = ({
                             <code className="text-sm text-primary-600 font-mono">/{question.slug}</code>
                         </div>
                     )}
+
+                    {/* Answers Section */}
+                    <div className="mb-6 pb-6 border-t border-secondary-200 pt-6">
+                        <h3 className="text-lg font-semibold text-secondary-800 mb-4">Answers</h3>
+                        <AnswersSection questionId={question.id} />
+                    </div>
 
                     {/* Action Buttons */}
                     <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-secondary-200">

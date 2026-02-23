@@ -17,7 +17,7 @@ import {
   Activity,
 } from 'lucide-react';
 import { useGetDashboardDataQuery } from '@/redux/api/dashboard/dashboardApi';
-import { DashboardData, ActivityType } from '@/redux/types/dashboard/dashboard.types';
+import { DashboardData, ActivityType, LegacyDashboardStats } from '@/redux/types/dashboard/dashboard.types';
 
 export default function DashboardPageComponent() {
   const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d' | '90d'>('7d');
@@ -41,7 +41,7 @@ export default function DashboardPageComponent() {
       commentsGrowth: 15.7,
       viewsGrowth: 22.4,
       reactionsGrowth: 18.9,
-    },
+    } as LegacyDashboardStats,
     recentActivity: [
       {
         id: '1',
@@ -174,7 +174,12 @@ export default function DashboardPageComponent() {
   const currentData = data || mockData;
   const stats = currentData.stats;
 
-  const statCards = [
+  // Type guard to check if stats is Legacy format
+  const isLegacyStats = (s: any): s is LegacyDashboardStats => {
+    return 'totalPosts' in s;
+  };
+
+  const statCards = isLegacyStats(stats) ? [
     {
       title: 'Total Posts',
       value: stats.totalPosts.toLocaleString(),
@@ -228,6 +233,44 @@ export default function DashboardPageComponent() {
       gradient: 'from-rose-500 via-pink-500 to-fuchsia-500',
       iconBg: 'bg-rose-500/20',
       iconColor: 'text-rose-600',
+    },
+  ] : [
+    // New stats format
+    {
+      title: 'Total Users',
+      value: stats.overview.totalUsers.toLocaleString(),
+      change: stats.overview.growth.users,
+      icon: Users,
+      gradient: 'from-blue-500 via-blue-600 to-indigo-600',
+      iconBg: 'bg-blue-500/20',
+      iconColor: 'text-blue-600',
+    },
+    {
+      title: 'Active Users',
+      value: stats.overview.activeUsers.toLocaleString(),
+      change: stats.overview.growth.users,
+      icon: Activity,
+      gradient: 'from-emerald-500 via-emerald-600 to-teal-600',
+      iconBg: 'bg-emerald-500/20',
+      iconColor: 'text-emerald-600',
+    },
+    {
+      title: 'Total Posts',
+      value: stats.overview.totalPosts.toLocaleString(),
+      change: stats.overview.growth.posts,
+      icon: FileText,
+      gradient: 'from-purple-500 via-purple-600 to-pink-600',
+      iconBg: 'bg-purple-500/20',
+      iconColor: 'text-purple-600',
+    },
+    {
+      title: 'Total Views',
+      value: stats.overview.totalViews.toLocaleString(),
+      change: stats.overview.growth.views,
+      icon: Eye,
+      gradient: 'from-cyan-500 via-sky-500 to-blue-500',
+      iconBg: 'bg-cyan-500/20',
+      iconColor: 'text-cyan-600',
     },
   ];
 

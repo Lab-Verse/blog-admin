@@ -2,10 +2,14 @@
 
 import { useState } from 'react';
 import { Comment, CommentStatus } from '@/redux/types/comment/comments.types';
+import {
+    useCreateCommentReplyMutation,
+    useGetCommentRepliesQuery,
+} from '@/redux/api/commentreplies/commentRepliesApi';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MessageSquare, Search, Eye, Trash2, CheckCircle, XCircle, AlertCircle, MoreHorizontal, Reply } from 'lucide-react';
+import { MessageSquare, Search, Eye, Trash2, CheckCircle, XCircle, AlertCircle, MoreHorizontal } from 'lucide-react';
 import Image from 'next/image';
 
 interface CommentsPageComponentProps {
@@ -13,6 +17,81 @@ interface CommentsPageComponentProps {
     isLoading: boolean;
     onUpdateStatus: (id: string, status: CommentStatus) => void;
     onDelete: (id: string) => void;
+}
+
+function CommentReplySection({
+    commentId,
+    hideReplies,
+}: {
+    commentId: string;
+    hideReplies: boolean;
+}) {
+    const { data: replies } = useGetCommentRepliesQuery({ commentId });
+    const [createCommentReply] = useCreateCommentReplyMutation();
+    const [replyContent, setReplyContent] = useState('');
+    const [isSubmittingReply, setIsSubmittingReply] = useState(false);
+
+    const handleSubmitReply = async () => {
+        if (!replyContent.trim()) {
+            alert('Please write a reply before posting.');
+            return;
+        }
+
+        setIsSubmittingReply(true);
+        try {
+            await createCommentReply({
+                commentId,
+                content: replyContent,
+            }).unwrap();
+            setReplyContent('');
+        } catch (error) {
+            console.error('Failed to add reply:', error);
+        } finally {
+            setIsSubmittingReply(false);
+        }
+    };
+
+    if (hideReplies) {
+        return null;
+    }
+
+    return (
+        <div className="mt-3">
+            <div className="mt-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
+                <textarea
+                    value={replyContent}
+                    onChange={(e) => setReplyContent(e.target.value)}
+                    rows={3}
+                    placeholder="Write a reply..."
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                />
+                <div className="mt-2 flex gap-2">
+                    <Button size="sm" onClick={handleSubmitReply} disabled={isSubmittingReply}>
+                        {isSubmittingReply ? 'Posting...' : 'Post Reply'}
+                    </Button>
+                </div>
+            </div>
+
+            {Array.isArray(replies) && replies.length > 0 && (
+                <div className="mt-3 space-y-2 border-l-2 border-slate-100 pl-3">
+                    {replies.map((reply) => (
+                        <div key={reply.id} className="rounded-md bg-slate-50 p-3">
+                            <div className="mb-1 flex items-center gap-2 text-xs text-slate-500">
+                                <span className="font-medium text-slate-700">{reply.author?.name || 'Unknown User'}</span>
+                                <span>•</span>
+                                <span>
+                                    {reply.createdAt
+                                        ? new Date(reply.createdAt).toLocaleDateString()
+                                        : 'Just now'}
+                                </span>
+                            </div>
+                            <p className="text-sm text-slate-700">{reply.content}</p>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
 }
 
 export default function CommentsPageComponent({
@@ -23,11 +102,34 @@ export default function CommentsPageComponent({
 }: CommentsPageComponentProps) {
     const [searchTerm, setSearchTerm] = useState('');
     const [filter, setFilter] = useState<CommentStatus | 'all'>('all');
+    const [hiddenRepliesByComment, setHiddenRepliesByComment] = useState<Record<string, boolean>>({});
+
+    const isRepliesHidden = (comment: Comment) => {
+        return hiddenRepliesByComment[comment.id] ?? (comment.status === CommentStatus.HIDDEN);
+    };
+
+    const handleHideComment = async (comment: Comment) => {
+        const nextHidden = !isRepliesHidden(comment);
+        await onUpdateStatus(comment.id, nextHidden ? CommentStatus.HIDDEN : CommentStatus.VISIBLE);
+        setHiddenRepliesByComment((prev) => ({
+            ...prev,
+            [comment.id]: nextHidden,
+        }));
+    };
+
+    const handleApproveComment = async (commentId: string) => {
+        await onUpdateStatus(commentId, CommentStatus.VISIBLE);
+        setHiddenRepliesByComment((prev) => ({
+            ...prev,
+            [commentId]: false,
+        }));
+    };
 
     const filteredComments = comments.filter((comment) => {
+        const authorName = comment.author?.name || '';
         const matchesSearch =
             comment.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            comment.author?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+            authorName.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesFilter = filter === 'all' || comment.status === filter;
         return matchesSearch && matchesFilter;
     });
@@ -183,36 +285,29 @@ export default function CommentsPageComponent({
                                             </p>
 
                                             {/* Actions */}
-                                            <div className="flex items-center gap-2 pt-2">
-                                                {comment.status !== CommentStatus.VISIBLE && (
-                                                    <Button
-                                                        onClick={() => onUpdateStatus(comment.id, CommentStatus.VISIBLE)}
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border-slate-200"
-                                                    >
-                                                        <CheckCircle className="w-4 h-4 mr-1.5" />
-                                                        Approve
-                                                    </Button>
-                                                )}
-                                                {comment.status !== CommentStatus.HIDDEN && (
-                                                    <Button
-                                                        onClick={() => onUpdateStatus(comment.id, CommentStatus.HIDDEN)}
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="text-amber-600 hover:text-amber-700 hover:bg-amber-50 border-slate-200"
-                                                    >
-                                                        <AlertCircle className="w-4 h-4 mr-1.5" />
-                                                        Hide
-                                                    </Button>
-                                                )}
+                                            <div className="flex min-h-10 items-center gap-2 pt-2">
                                                 <Button
-                                                    variant="ghost"
+                                                    onClick={() => handleApproveComment(comment.id)}
+                                                    variant="outline"
                                                     size="sm"
-                                                    className="text-slate-500 hover:text-primary-600"
+                                                    disabled={comment.status === CommentStatus.VISIBLE}
+                                                    className={`w-24 justify-center border-slate-200 ${
+                                                        comment.status === CommentStatus.VISIBLE
+                                                            ? 'invisible pointer-events-none'
+                                                            : 'text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50'
+                                                    }`}
                                                 >
-                                                    <Reply className="w-4 h-4 mr-1.5" />
-                                                    Reply
+                                                    <CheckCircle className="w-4 h-4 mr-1.5" />
+                                                    Approve
+                                                </Button>
+                                                <Button
+                                                    onClick={() => handleHideComment(comment)}
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="w-24 justify-center text-amber-600 hover:text-amber-700 hover:bg-amber-50 border-slate-200"
+                                                >
+                                                    <AlertCircle className="w-4 h-4 mr-1.5" />
+                                                    {isRepliesHidden(comment) ? 'Show' : 'Hide'}
                                                 </Button>
                                                 <div className="flex-1"></div>
                                                 <Button
@@ -224,6 +319,11 @@ export default function CommentsPageComponent({
                                                     <Trash2 className="w-4 h-4" />
                                                 </Button>
                                             </div>
+
+                                            <CommentReplySection
+                                                commentId={comment.id}
+                                                hideReplies={isRepliesHidden(comment)}
+                                            />
                                         </div>
                                     </div>
                                 </CardContent>

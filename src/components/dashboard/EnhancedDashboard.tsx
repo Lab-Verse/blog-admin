@@ -1,115 +1,148 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   Users, FileText, MessageSquare, Eye, Tag,
-  TrendingUp, Activity, BarChart3, PieChart, Settings,
+  TrendingUp, Activity, BarChart3, PieChart,
   Plus, Filter, Download, RefreshCw
 } from 'lucide-react';
+import { useGetUsersQuery } from '@/redux/api/user/usersApi';
+import { useGetPostsQuery } from '@/redux/api/post/posts.api';
+import { useGetCommentsQuery } from '@/redux/api/comment/commentsApi';
+import { useGetViewStatsQuery, useGetViewAnalyticsQuery } from '@/redux/api/view/viewsApi';
+import { useGetTagsQuery } from '@/redux/api/tags/tagsApi';
+import { useGetCategoriesQuery } from '@/redux/api/category/categoriesApi';
+import { useGetMediaQuery } from '@/redux/api/media/mediaApi';
+import { useGetQuestionsQuery } from '@/redux/api/question/questions.api';
 
-interface DashboardData {
-  stats: {
-    users: number;
-    posts: number;
-    comments: number;
-    views: number;
-    tags: number;
-    categories: number;
-    media: number;
-    questions: number;
-  };
-  recentActivity: Array<{
-    id: string;
-    type: string;
-    message: string;
-    timestamp: string;
-    user: string;
-    status: 'success' | 'warning' | 'error';
-  }>;
-  topTags: Array<{
-    id: string;
-    name: string;
-    count: number;
-    trend: 'up' | 'down' | 'stable';
-  }>;
-  analytics: {
-    dailyViews: number[];
-    weeklyPosts: number[];
-    monthlyUsers: number[];
-  };
-}
+type ActivityStatus = 'success' | 'warning' | 'error';
+
+const getDisplayName = (user: any): string => {
+  if (!user) return 'Anonymous';
+  return user.display_name || user.username || user.email || 'Anonymous';
+};
+
+const getTotalFromResponse = (value: any): number => {
+  if (!value) return 0;
+  if (Array.isArray(value)) return value.length;
+  if (typeof value.total === 'number') return value.total;
+  if (Array.isArray(value.items)) return value.items.length;
+  if (Array.isArray(value.data)) return value.data.length;
+  if (Array.isArray(value.data?.items)) return value.data.items.length;
+  return 0;
+};
 
 export default function EnhancedDashboard() {
-  const [data, setData] = useState<DashboardData>({
-    stats: { users: 0, posts: 0, comments: 0, views: 0, tags: 0, categories: 0, media: 0, questions: 0 },
-    recentActivity: [],
-    topTags: [],
-    analytics: { dailyViews: [], weeklyPosts: [], monthlyUsers: [] }
-  });
-  const [isLoading, setIsLoading] = useState(true);
-  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
-  const [isMounted, setIsMounted] = useState(false);
+  const router = useRouter();
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  const usersQuery = useGetUsersQuery({ page: 1, limit: 1 });
+  const postsQuery = useGetPostsQuery();
+  const commentsQuery = useGetCommentsQuery();
+  const viewsStatsQuery = useGetViewStatsQuery();
+  const viewsAnalyticsQuery = useGetViewAnalyticsQuery({ page: 1, limit: 6 });
+  const tagsQuery = useGetTagsQuery();
+  const categoriesQuery = useGetCategoriesQuery({ page: 1, limit: 1 });
+  const mediaQuery = useGetMediaQuery({ page: 1, limit: 1 });
+  const questionsQuery = useGetQuestionsQuery();
 
-  useEffect(() => {
-    const fetchData = () => {
-      // Simulate real-time data
-      setData({
-        stats: {
-          users: Math.floor(Math.random() * 100) + 1200,
-          posts: Math.floor(Math.random() * 50) + 350,
-          comments: Math.floor(Math.random() * 200) + 890,
-          views: Math.floor(Math.random() * 1000) + 15420,
-          tags: Math.floor(Math.random() * 20) + 85,
-          categories: Math.floor(Math.random() * 5) + 25,
-          media: Math.floor(Math.random() * 30) + 120,
-          questions: Math.floor(Math.random() * 40) + 180
-        },
-        recentActivity: [
-          { id: '1', type: 'user', message: 'New user registered', timestamp: new Date().toISOString(), user: 'John Doe', status: 'success' },
-          { id: '2', type: 'post', message: 'Post published: "React Best Practices"', timestamp: new Date(Date.now() - 300000).toISOString(), user: 'Jane Smith', status: 'success' },
-          { id: '3', type: 'comment', message: 'Comment flagged for review', timestamp: new Date(Date.now() - 600000).toISOString(), user: 'Mike Johnson', status: 'warning' },
-          { id: '4', type: 'tag', message: 'New tag created: "TypeScript"', timestamp: new Date(Date.now() - 900000).toISOString(), user: 'Sarah Wilson', status: 'success' },
-          { id: '5', type: 'media', message: 'Large file upload detected', timestamp: new Date(Date.now() - 1200000).toISOString(), user: 'Admin', status: 'warning' }
-        ],
-        topTags: [
-          { id: '1', name: 'React', count: 45, trend: 'up' },
-          { id: '2', name: 'JavaScript', count: 38, trend: 'up' },
-          { id: '3', name: 'TypeScript', count: 32, trend: 'stable' },
-          { id: '4', name: 'Next.js', count: 28, trend: 'up' },
-          { id: '5', name: 'CSS', count: 24, trend: 'down' },
-          { id: '6', name: 'Node.js', count: 22, trend: 'stable' }
-        ],
-        analytics: {
-          dailyViews: [120, 150, 180, 200, 170, 190, 220],
-          weeklyPosts: [12, 15, 18, 14, 16, 20, 22],
-          monthlyUsers: [800, 850, 920, 980, 1050, 1120, 1200]
-        }
+  const isLoading = [
+    usersQuery.isLoading,
+    postsQuery.isLoading,
+    commentsQuery.isLoading,
+    viewsStatsQuery.isLoading,
+    viewsAnalyticsQuery.isLoading,
+    tagsQuery.isLoading,
+    categoriesQuery.isLoading,
+    mediaQuery.isLoading,
+    questionsQuery.isLoading,
+  ].some(Boolean);
+
+  const stats = useMemo(() => ({
+    users: getTotalFromResponse(usersQuery.data),
+    posts: getTotalFromResponse(postsQuery.data),
+    comments: getTotalFromResponse(commentsQuery.data),
+    views: viewsStatsQuery.data?.total ?? 0,
+    tags: getTotalFromResponse(tagsQuery.data),
+    categories: getTotalFromResponse(categoriesQuery.data),
+    media: getTotalFromResponse(mediaQuery.data),
+    questions: getTotalFromResponse(questionsQuery.data),
+  }), [
+    usersQuery.data,
+    postsQuery.data,
+    commentsQuery.data,
+    viewsStatsQuery.data,
+    tagsQuery.data,
+    categoriesQuery.data,
+    mediaQuery.data,
+    questionsQuery.data,
+  ]);
+
+  const recentActivity = useMemo(() => {
+    return (viewsAnalyticsQuery.data?.recentViews || []).map((view) => ({
+      id: view.id,
+      type: view.viewable_type,
+      message: `Viewed ${view.post?.title || 'content'}`,
+      timestamp: String(view.created_at),
+      user: getDisplayName(view.user),
+      status: 'success' as ActivityStatus,
+    }));
+  }, [viewsAnalyticsQuery.data]);
+
+  const topTags = useMemo(() => {
+    const counts = new Map<string, number>();
+    const posts = Array.isArray(postsQuery.data) ? postsQuery.data : [];
+
+    posts.forEach((post) => {
+      (post.tags || []).forEach((tag) => {
+        counts.set(tag.name, (counts.get(tag.name) || 0) + 1);
       });
-      setIsLoading(false);
-      setLastUpdate(new Date());
-    };
+    });
 
-    fetchData();
-    const interval = setInterval(fetchData, 10000);
-    return () => clearInterval(interval);
-  }, []);
+    if (counts.size === 0 && Array.isArray(tagsQuery.data)) {
+      return tagsQuery.data.slice(0, 6).map((tag) => ({
+        id: tag.id,
+        name: tag.name,
+        count: 0,
+        trend: 'stable' as const,
+      }));
+    }
+
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 6)
+      .map(([name, count], index) => ({
+        id: `${name}-${index}`,
+        name,
+        count,
+        trend: 'stable' as const,
+      }));
+  }, [postsQuery.data, tagsQuery.data]);
+
+  const handleRefresh = () => {
+    usersQuery.refetch();
+    postsQuery.refetch();
+    commentsQuery.refetch();
+    viewsStatsQuery.refetch();
+    viewsAnalyticsQuery.refetch();
+    tagsQuery.refetch();
+    categoriesQuery.refetch();
+    mediaQuery.refetch();
+    questionsQuery.refetch();
+  };
 
   const statCards = [
-    { title: 'Total Users', value: data.stats.users, icon: Users, color: 'bg-blue-500', change: '+12%' },
-    { title: 'Total Posts', value: data.stats.posts, icon: FileText, color: 'bg-green-500', change: '+8%' },
-    { title: 'Comments', value: data.stats.comments, icon: MessageSquare, color: 'bg-purple-500', change: '+15%' },
-    { title: 'Total Views', value: data.stats.views, icon: Eye, color: 'bg-orange-500', change: '+22%' },
-    { title: 'Tags', value: data.stats.tags, icon: Tag, color: 'bg-pink-500', change: '+5%' },
-    { title: 'Categories', value: data.stats.categories, icon: BarChart3, color: 'bg-indigo-500', change: '+3%' },
-    { title: 'Media Files', value: data.stats.media, icon: PieChart, color: 'bg-teal-500', change: '+18%' },
-    { title: 'Questions', value: data.stats.questions, icon: MessageSquare, color: 'bg-red-500', change: '+10%' }
+    { title: 'Total Users', value: stats.users, icon: Users, color: 'bg-blue-500', href: '/users' },
+    { title: 'Total Posts', value: stats.posts, icon: FileText, color: 'bg-green-500', href: '/posts' },
+    { title: 'Comments', value: stats.comments, icon: MessageSquare, color: 'bg-purple-500', href: '/comments' },
+    { title: 'Total Views', value: stats.views, icon: Eye, color: 'bg-orange-500', href: '/views' },
+    { title: 'Tags', value: stats.tags, icon: Tag, color: 'bg-pink-500', href: '/tags' },
+    { title: 'Categories', value: stats.categories, icon: BarChart3, color: 'bg-indigo-500', href: '/categories' },
+    { title: 'Media Files', value: stats.media, icon: PieChart, color: 'bg-teal-500', href: '/media' },
+    { title: 'Questions', value: stats.questions, icon: MessageSquare, color: 'bg-red-500', href: '/questions' }
   ];
 
   const getActivityIcon = (type: string) => {
@@ -147,9 +180,9 @@ export default function EnhancedDashboard() {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 text-sm text-gray-500">
             <Activity className="w-4 h-4 text-green-500" />
-            <span>Live • Last update: {isMounted ? lastUpdate.toLocaleTimeString() : '--:--:--'}</span>
+            <span>Live data from database</span>
           </div>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={handleRefresh}>
             <RefreshCw className="w-4 h-4 mr-2" />
             Refresh
           </Button>
@@ -163,22 +196,23 @@ export default function EnhancedDashboard() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((stat, index) => (
-          <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">{stat.title}</p>
-                  <p className="text-2xl font-bold">
-                    {isLoading ? '...' : stat.value.toLocaleString()}
-                  </p>
-                  <p className="text-xs text-green-600 font-medium">{stat.change}</p>
+          <button key={index} type="button" className="text-left" onClick={() => router.push(stat.href)}>
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">{stat.title}</p>
+                    <p className="text-2xl font-bold">
+                      {isLoading ? '...' : stat.value.toLocaleString()}
+                    </p>
+                  </div>
+                  <div className={`p-3 rounded-full ${stat.color} text-white`}>
+                    <stat.icon className="w-6 h-6" />
+                  </div>
                 </div>
-                <div className={`p-3 rounded-full ${stat.color} text-white`}>
-                  <stat.icon className="w-6 h-6" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </button>
         ))}
       </div>
 
@@ -197,7 +231,7 @@ export default function EnhancedDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3 max-h-96 overflow-y-auto">
-              {data.recentActivity.map((activity) => (
+              {recentActivity.map((activity) => (
                 <div key={activity.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                   <div className="text-2xl">{getActivityIcon(activity.type)}</div>
                   <div className="flex-1">
@@ -208,12 +242,15 @@ export default function EnhancedDashboard() {
                         {activity.status}
                       </Badge>
                       <span className="text-xs text-gray-500">
-                        {isMounted ? new Date(activity.timestamp).toLocaleTimeString() : '--:--:--'}
+                        {new Date(activity.timestamp).toLocaleTimeString()}
                       </span>
                     </div>
                   </div>
                 </div>
               ))}
+              {!isLoading && recentActivity.length === 0 && (
+                <div className="p-3 text-sm text-gray-500">No recent activity available.</div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -231,7 +268,7 @@ export default function EnhancedDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {data.topTags.map((tag) => (
+              {topTags.map((tag) => (
                 <div key={tag.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg transition-colors">
                   <div className="flex items-center gap-2">
                     <Badge variant="secondary" className="text-xs">
@@ -266,9 +303,9 @@ export default function EnhancedDashboard() {
               { label: 'Comments', icon: MessageSquare, color: 'bg-indigo-500', href: '/comments' },
               { label: 'Views', icon: Eye, color: 'bg-cyan-500', href: '/views' },
               { label: 'Analytics', icon: TrendingUp, color: 'bg-teal-500', href: '/analytics' },
-              { label: 'Test CRUD', icon: Settings, color: 'bg-red-500', href: '/test' }
+              { label: 'Test CRUD', icon: PieChart, color: 'bg-red-500', href: '/test' }
             ].map((action, index) => (
-              <Button key={index} variant="outline" className="h-20 flex-col gap-2 hover:shadow-md transition-all" onClick={() => window.location.href = action.href}>
+              <Button key={index} variant="outline" className="h-20 flex-col gap-2 hover:shadow-md transition-all" onClick={() => router.push(action.href)}>
                 <div className={`p-2 rounded-full ${action.color} text-white`}>
                   <action.icon className="w-4 h-4" />
                 </div>
