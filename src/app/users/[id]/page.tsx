@@ -3,7 +3,7 @@
 import React from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import UserDetailsPage from '@/components/users/pages/UserDetailsPage';
-import { useGetUserByIdQuery, useDeleteUserMutation } from '@/redux/api/user/usersApi';
+import { useGetUserByIdQuery, useDeleteUserMutation, useVerifyUserMutation, useRejectUserMutation } from '@/redux/api/user/usersApi';
 
 export default function Page() {
   const params = useParams();
@@ -12,6 +12,8 @@ export default function Page() {
 
   const { data: user, isLoading } = useGetUserByIdQuery(id);
   const [deleteUser] = useDeleteUserMutation();
+  const [verifyUser, { isLoading: isVerifying }] = useVerifyUserMutation();
+  const [rejectUser, { isLoading: isRejecting }] = useRejectUserMutation();
 
   const handleEdit = () => {
     router.push(`/users/${id}/edit`);
@@ -30,6 +32,31 @@ export default function Page() {
 
   const handleBack = () => {
     router.push('/users');
+  };
+
+  const handleVerify = async () => {
+    if (user && confirm(`Are you sure you want to verify ${user.username || user.email}?`)) {
+      try {
+        await verifyUser(id).unwrap();
+        alert('User verified successfully!');
+      } catch (error) {
+        console.error('Failed to verify user:', error);
+        alert('Failed to verify user');
+      }
+    }
+  };
+
+  const handleReject = async () => {
+    const reason = prompt('Enter rejection reason (optional):');
+    if (user && confirm(`Are you sure you want to reject ${user.username || user.email}?`)) {
+      try {
+        await rejectUser({ id, reason: reason || undefined }).unwrap();
+        alert('User rejected');
+      } catch (error) {
+        console.error('Failed to reject user:', error);
+        alert('Failed to reject user');
+      }
+    }
   };
 
   if (isLoading) {
@@ -61,7 +88,11 @@ export default function Page() {
       onEdit={handleEdit}
       onDelete={handleDelete}
       onBack={handleBack}
+      onVerify={handleVerify}
+      onReject={handleReject}
       isLoading={isLoading}
+      isVerifying={isVerifying}
+      isRejecting={isRejecting}
     />
   );
 }

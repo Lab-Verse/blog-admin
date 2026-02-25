@@ -12,7 +12,11 @@ interface UserDetailsPageProps {
     onEdit: () => void;
     onDelete: () => void;
     onBack: () => void;
+    onVerify?: () => void;
+    onReject?: () => void;
     isLoading?: boolean;
+    isVerifying?: boolean;
+    isRejecting?: boolean;
 }
 
 export default function UserDetailsPage({
@@ -20,7 +24,11 @@ export default function UserDetailsPage({
     onEdit,
     onDelete,
     onBack,
+    onVerify,
+    onReject,
     isLoading = false,
+    isVerifying = false,
+    isRejecting = false,
 }: UserDetailsPageProps) {
     if (isLoading) {
         return (
@@ -41,6 +49,30 @@ export default function UserDetailsPage({
                     Back to Users
                 </Button>
                 <div className="flex gap-3">
+                    {user.status === 'pending' && onVerify && onReject && (
+                        <>
+                            <Button 
+                                onClick={onVerify} 
+                                disabled={isVerifying || isRejecting}
+                                className="bg-green-600 hover:bg-green-700 text-white focus:ring-green-500"
+                            >
+                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                                {isVerifying ? 'Verifying...' : 'Verify User'}
+                            </Button>
+                            <Button 
+                                onClick={onReject} 
+                                disabled={isVerifying || isRejecting}
+                                className="bg-orange-600 hover:bg-orange-700 text-white focus:ring-orange-500"
+                            >
+                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                {isRejecting ? 'Rejecting...' : 'Reject User'}
+                            </Button>
+                        </>
+                    )}
                     <Button variant="outline" onClick={onEdit}>
                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />

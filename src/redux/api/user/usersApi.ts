@@ -132,6 +132,31 @@ export const usersApi = baseApi.injectEndpoints({
         { type: 'User', id },
       ],
     }),
+
+    // POST /auth/admin/verify-user/:id
+    verifyUser: builder.mutation<{ message: string; user: User }, string>({
+      query: (id) => ({
+        url: `/auth/admin/verify-user/${id}`,
+        method: 'POST',
+      }),
+      invalidatesTags: (_result, _error, id) => [
+        { type: 'User', id },
+        { type: 'User', id: 'LIST' },
+      ],
+    }),
+
+    // POST /auth/admin/reject-user/:id
+    rejectUser: builder.mutation<{ message: string }, { id: string; reason?: string }>({
+      query: ({ id, reason }) => ({
+        url: `/auth/admin/reject-user/${id}`,
+        method: 'POST',
+        body: reason ? { reason } : undefined,
+      }),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'User', id },
+        { type: 'User', id: 'LIST' },
+      ],
+    }),
   }),
   overrideExisting: false,
 });
@@ -146,4 +171,6 @@ export const {
   useUpdateUserProfileMutation,
   useDeleteUserProfileMutation,
   useUploadProfilePictureMutation,
+  useVerifyUserMutation,
+  useRejectUserMutation,
 } = usersApi;
