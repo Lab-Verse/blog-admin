@@ -49,6 +49,7 @@ export default function UsersPageComponent({
       [UserStatus.ACTIVE]: 'bg-emerald-500/10 text-emerald-600 border-emerald-200 ring-1 ring-emerald-500/20',
       [UserStatus.INACTIVE]: 'bg-slate-500/10 text-slate-600 border-slate-200 ring-1 ring-slate-500/20',
       [UserStatus.BANNED]: 'bg-rose-500/10 text-rose-600 border-rose-200 ring-1 ring-rose-500/20',
+      [UserStatus.PENDING]: 'bg-amber-500/10 text-amber-600 border-amber-200 ring-1 ring-amber-500/20',
     };
     return styles[status] || styles[UserStatus.INACTIVE];
   };

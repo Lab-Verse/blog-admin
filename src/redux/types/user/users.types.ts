@@ -4,6 +4,7 @@ export enum UserStatus {
   ACTIVE = 'active',
   INACTIVE = 'inactive',
   BANNED = 'banned',
+  PENDING = 'pending',
 }
 
 export type UserRole = 'admin' | 'user' | 'manager' | string;

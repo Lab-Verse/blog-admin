@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import type { User } from '@/redux/types/user/users.types';
+import { type User, UserStatus } from '@/redux/types/user/users.types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { UserStatusBadge } from '../ui/UserStatusBadge';
@@ -49,7 +49,7 @@ export default function UserDetailsPage({
                     Back to Users
                 </Button>
                 <div className="flex gap-3">
-                    {user.status === 'pending' && onVerify && onReject && (
+                    {user.status === UserStatus.PENDING && onVerify && onReject && (
                         <>
                             <Button 
                                 onClick={onVerify} 
