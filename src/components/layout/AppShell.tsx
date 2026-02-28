@@ -6,6 +6,7 @@ import { RootState } from '@/redux/store';
 import { useEffect, useState } from 'react';
 import SideNavbar from './SideNavbar';
 import Navbar from '../common/Navbar';
+import { useGetMeQuery } from '@/redux/api/auth/authApi';
 
 const AUTH_ROUTES = ['/auth/login', '/auth/register', '/auth/forgot-password', '/auth/reset-password'];
 
@@ -20,9 +21,20 @@ interface AppShellProps {
 export default function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const { isAuthenticated, user, accessToken } = useSelector((state: RootState) => state.auth);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+
+  // Debug auth state
+  console.log('[AppShell] Auth state:', { isAuthenticated, hasUser: !!user, hasToken: !!accessToken });
+
+  // Fetch user data when authenticated but user data is missing
+  const { data: meData, isLoading: mePending, error: meError } = useGetMeQuery(undefined, {
+    skip: !isAuthenticated || !!user,
+  });
+
+  // Debug getMe query
+  console.log('[AppShell] getMe result:', { meData, mePending, meError, skip: !isAuthenticated || !!user });
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 

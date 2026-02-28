@@ -1,6 +1,7 @@
 import { baseApi } from '../baseApi';
 import type {
   AuthResponse,
+  AuthUser,
   ForgotPasswordRequest,
   LoginRequest,
   RefreshTokenRequest,
@@ -28,6 +29,11 @@ export const authApi = baseApi.injectEndpoints({
         body,
       }),
       invalidatesTags: ['Auth', 'User'],
+    }),
+
+    getMe: builder.query<{ success: boolean; data: AuthUser }, void>({
+      query: () => '/auth/me',
+      providesTags: ['Auth'],
     }),
 
     refreshToken: builder.mutation<RefreshTokenResponse, RefreshTokenRequest>({
@@ -61,6 +67,8 @@ export const authApi = baseApi.injectEndpoints({
 export const {
   useRegisterMutation,
   useLoginMutation,
+  useGetMeQuery,
+  useLazyGetMeQuery,
   useRefreshTokenMutation,
   useForgotPasswordMutation,
   useResetPasswordMutation,

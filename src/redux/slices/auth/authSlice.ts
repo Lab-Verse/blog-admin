@@ -63,6 +63,9 @@ const authSlice = createSlice({
         state.user.profile = action.payload;
       }
     },
+    setUser: (state, action: PayloadAction<AuthUser>) => {
+      state.user = action.payload;
+    },
   },
   extraReducers: (builder) => {
     // LOGIN
@@ -134,8 +137,31 @@ const authSlice = createSlice({
           Cookies.set('accessToken', data.accessToken, { expires: 7 });
         }
       });
+
+    // GET ME - fetch current user data
+    builder
+      .addMatcher(authApi.endpoints.getMe.matchFulfilled, (state, action) => {
+        console.log('[AuthSlice] getMe fulfilled:', action.payload);
+        const user = action.payload?.data;
+        if (user) {
+          console.log('[AuthSlice] Setting user:', user);
+          state.user = user;
+        }
+      })
+      .addMatcher(authApi.endpoints.getMe.matchRejected, (state, action) => {
+        console.log('[AuthSlice] getMe rejected:', action.payload, action.error);
+        // Only clear auth on 401 Unauthorized (invalid/expired token)
+        const status = (action.payload as { status?: number })?.status;
+        if (status === 401) {
+          state.user = null;
+          state.accessToken = null;
+          state.isAuthenticated = false;
+          Cookies.remove('accessToken');
+          Cookies.remove('refreshToken');
+        }
+      });
   },
 });
 
-export const { setCredentials, initAuth, clearAuth, setUserProfile } = authSlice.actions;
+export const { setCredentials, initAuth, clearAuth, setUserProfile, setUser } = authSlice.actions;
 export default authSlice.reducer;

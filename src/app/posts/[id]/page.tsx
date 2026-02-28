@@ -194,6 +194,7 @@ export default function SinglePostPage() {
   const postId = params.id as string;
   const { data: post, isLoading, error } = useGetPostByIdQuery(postId);
   const currentUser = useAppSelector((state) => state.auth?.user);
+  const isAuthenticated = useAppSelector((state) => state.auth?.isAuthenticated);
   const [likeCount, setLikeCount] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
@@ -212,8 +213,15 @@ export default function SinglePostPage() {
   const [createView] = useCreateViewMutation();
 
   const requireAuth = () => {
+    // In admin panel, user should already be authenticated
+    // If user data not loaded yet, just return false without redirecting
     if (currentUser?.id) return true;
-    router.push(`/auth/login?redirect=/posts/${postId}`);
+    if (isAuthenticated) {
+      // Authenticated but user data still loading, just return false
+      console.log('User authenticated but data not loaded yet');
+      return false;
+    }
+    // Not authenticated at all - this shouldn't happen in admin panel
     return false;
   };
 
@@ -432,7 +440,8 @@ export default function SinglePostPage() {
     document.getElementById('comments-section')?.scrollIntoView({ behavior: 'smooth' });
 
     if (!currentUser?.id) {
-      router.push(`/auth/login?redirect=/posts/${postId}`);
+      // In admin panel, user should already be authenticated
+      console.log('User data not loaded yet');
       return;
     }
 
@@ -714,6 +723,7 @@ export default function SinglePostPage() {
         <Button
           variant="outline"
           onClick={handleLike}
+          disabled={!currentUser?.id}
           className={`flex items-center gap-2 cursor-pointer ${isLiked ? 'bg-red-50 border-red-200 text-red-600' : 'hover:bg-red-50 hover:border-red-200'}`}
         >
           <Heart className="w-4 h-4" />
@@ -722,6 +732,7 @@ export default function SinglePostPage() {
         <Button
           variant="outline"
           onClick={handleCommentButtonClick}
+          disabled={!currentUser?.id}
           className="flex items-center gap-2 cursor-pointer hover:bg-blue-50 hover:border-blue-200"
         >
           <MessageCircle className="w-4 h-4" />
@@ -738,6 +749,7 @@ export default function SinglePostPage() {
         <Button
           variant="outline"
           onClick={handleBookmark}
+          disabled={!currentUser?.id}
           className={`flex items-center gap-2 cursor-pointer ${isBookmarked ? 'bg-yellow-50 border-yellow-200 text-yellow-600' : 'hover:bg-yellow-50 hover:border-yellow-200'}`}
         >
           <Bookmark className="w-4 h-4" />

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Category, CategoryStatus } from '@/redux/types/category/categories.types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -141,8 +142,20 @@ export default function CategoriesPageComponent({
             {filteredCategories.map((category) => (
               <div
                 key={category.id}
-                className={`group bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300 cursor-pointer ${viewMode === 'list' ? 'flex items-center p-4 gap-6' : 'p-6'}`}
+                className={`group bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300 cursor-pointer overflow-hidden ${viewMode === 'list' ? 'flex items-center p-4 gap-6' : ''}`}
               >
+                {/* Category Image */}
+                {viewMode === 'grid' && category.image_url && (
+                  <div className="relative w-full h-32 overflow-hidden">
+                    <Image
+                      src={category.image_url}
+                      alt={category.name}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                )}
+                <div className={`${viewMode === 'grid' ? 'p-6' : ''}`}>
                 <div className={`flex items-start justify-between ${viewMode === 'list' ? 'flex-1' : 'mb-4'}`}>
                   <div className="flex items-center gap-4">
                     <div
@@ -198,6 +211,7 @@ export default function CategoriesPageComponent({
                       {viewMode === 'grid' && 'Delete'}
                     </Button>
                   </div>
+                </div>
                 </div>
               </div>
             ))}

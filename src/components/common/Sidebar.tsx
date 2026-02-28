@@ -3,6 +3,9 @@
 import { X, LayoutDashboard, FileText, Users, Settings, LogOut, Tag, FolderTree, Eye } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/redux/store';
+import Image from 'next/image';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -11,6 +14,16 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
   const pathname = usePathname();
+  const user = useSelector((state: RootState) => state.auth.user);
+
+  const displayName = user?.display_name || user?.username || 'Admin';
+  const displayEmail = user?.email || '';
+  const initials = user?.display_name 
+    ? user.display_name.slice(0, 2).toUpperCase() 
+    : user?.username 
+      ? user.username.slice(0, 2).toUpperCase() 
+      : 'AD';
+  const profilePicture = user?.profile?.profile_picture;
 
   const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard, href: '/' },
@@ -97,12 +110,22 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
 
         <div className="absolute bottom-0 left-0 right-0 p-6 bg-secondary-900 border-t border-secondary-800">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-secondary-800 flex items-center justify-center border border-secondary-700">
-              <span className="font-bold text-secondary-300">AD</span>
-            </div>
+            {profilePicture ? (
+              <Image
+                src={profilePicture}
+                alt={displayName}
+                width={40}
+                height={40}
+                className="w-10 h-10 rounded-full object-cover border border-secondary-700"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-secondary-800 flex items-center justify-center border border-secondary-700">
+                <span className="font-bold text-secondary-300">{initials}</span>
+              </div>
+            )}
             <div>
-              <p className="text-sm font-medium text-white">Admin User</p>
-              <p className="text-xs text-secondary-500">admin@labverse.com</p>
+              <p className="text-sm font-medium text-white">{displayName}</p>
+              <p className="text-xs text-secondary-500">{displayEmail}</p>
             </div>
           </div>
         </div>

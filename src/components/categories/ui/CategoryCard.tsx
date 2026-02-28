@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { Category } from '@/redux/types/category/categories.types'; 
 import CategoryStatusBadge from './CategoryStatusBadge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -23,11 +24,22 @@ export default function CategoryCard({ category, onEdit, onDelete, onClick }: Ca
             <Card
                 className="border-0 shadow-md ring-1 ring-gray-200/50 hover:shadow-xl hover:ring-gray-300/50 transition-all duration-300 overflow-hidden group"
             >
-                {/* Color bar */}
-                <div
-                    className="h-2 w-full"
-                    style={{ backgroundColor: categoryColor }}
-                />
+                {/* Image or Color bar */}
+                {category.image_url ? (
+                    <div className="relative w-full h-32 overflow-hidden">
+                        <Image
+                            src={category.image_url}
+                            alt={category.name}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                    </div>
+                ) : (
+                    <div
+                        className="h-2 w-full"
+                        style={{ backgroundColor: categoryColor }}
+                    />
+                )}
 
                 <CardContent className="p-5">
                     <div className="flex items-start justify-between gap-3 mb-4">
