@@ -1,6 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState } from '@/redux/store';
+import { clearAuth } from '@/redux/slices/auth/authSlice';
 import { Menu, Bell, Search, ChevronDown, User, Settings, LogOut, HelpCircle } from 'lucide-react';
 
 interface NavbarProps {
@@ -11,6 +15,9 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const router = useRouter();
+  const dispatch = useDispatch();
+  const user = useSelector((state: RootState) => state.auth.user);
 
   // Mock notifications
   const notifications = [
@@ -111,11 +118,11 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
               className="flex items-center gap-3 p-1.5 pr-3 rounded-lg hover:bg-secondary-100 transition-colors"
             >
               <div className="w-8 h-8 rounded-full bg-linear-to-tr from-primary-500 to-primary-600 flex items-center justify-center text-white font-medium text-sm shadow-md shadow-primary-500/20">
-                AD
+                {user?.name ? user.name.substring(0, 2).toUpperCase() : 'AD'}
               </div>
               <div className="hidden sm:block text-left">
-                <p className="text-sm font-medium text-secondary-900 leading-none">Admin</p>
-                <p className="text-xs text-secondary-500 mt-0.5">Administrator</p>
+                <p className="text-sm font-medium text-secondary-900 leading-none">{user?.name || 'Admin'}</p>
+                <p className="text-xs text-secondary-500 mt-0.5">{user?.role || 'Administrator'}</p>
               </div>
               <ChevronDown
                 size={16}
@@ -128,8 +135,8 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
             {showProfileMenu && (
               <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-secondary-200 overflow-hidden z-50">
                 <div className="p-4 border-b border-secondary-100 bg-linear-to-r from-primary-50 to-accent-50">
-                  <p className="font-semibold text-secondary-900">Admin User</p>
-                  <p className="text-sm text-secondary-600">admin@example.com</p>
+                  <p className="font-semibold text-secondary-900">{user?.name || 'Admin User'}</p>
+                  <p className="text-sm text-secondary-600">{user?.email || 'admin@example.com'}</p>
                 </div>
                 <div className="p-2">
                   <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-secondary-100 text-secondary-700 transition-colors">
@@ -146,7 +153,13 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
                   </button>
                 </div>
                 <div className="p-2 border-t border-secondary-100">
-                  <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-danger-50 text-danger-600 transition-colors">
+                  <button 
+                    onClick={() => {
+                      dispatch(clearAuth());
+                      router.push('/auth/login');
+                    }}
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-danger-50 text-danger-600 transition-colors"
+                  >
                     <LogOut size={16} />
                     <span className="text-sm font-medium">Log Out</span>
                   </button>

@@ -2,7 +2,10 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/redux/store';
 import {
   Bell,
   Tag,
@@ -62,6 +65,7 @@ export default function SideNavbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [expandedSections, setExpandedSections] = useState<string[]>(['Main', 'Engagement']);
   const pathname = usePathname();
+  const user = useSelector((state: RootState) => state.auth.user);
 
   const toggleSection = (title: string) => {
     setExpandedSections(prev =>
@@ -100,9 +104,13 @@ export default function SideNavbar() {
           {/* Logo */}
           <div className="flex items-center justify-between h-16 px-6 bg-linear-to-r from-primary-600 to-primary-700 shadow-lg">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                <LayoutDashboard className="w-5 h-5 text-white" />
-              </div>
+              <Image
+                src="/twa.png"
+                alt="TWA Logo"
+                width={36}
+                height={36}
+                className="rounded-lg"
+              />
               <h1 className="text-xl font-bold">Blog Admin</h1>
             </div>
           </div>
@@ -165,11 +173,11 @@ export default function SideNavbar() {
           <div className="px-6 py-4 border-t border-secondary-700 bg-secondary-800/50">
             <div className="flex items-center gap-3 p-3 rounded-lg bg-linear-to-r from-primary-500/10 to-accent-500/10 border border-primary-500/20">
               <div className="w-10 h-10 rounded-full bg-linear-to-br from-primary-500 to-accent-500 flex items-center justify-center text-white font-bold shadow-md">
-                AD
+                {user?.name ? user.name.substring(0, 2).toUpperCase() : 'AD'}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-white truncate">Admin User</p>
-                <p className="text-xs text-secondary-400 truncate">admin@example.com</p>
+                <p className="text-sm font-semibold text-white truncate">{user?.name || 'Admin User'}</p>
+                <p className="text-xs text-secondary-400 truncate">{user?.email || 'admin@example.com'}</p>
               </div>
             </div>
             <p className="text-xs text-secondary-500 mt-4 text-center">© 2025 Blog Admin</p>

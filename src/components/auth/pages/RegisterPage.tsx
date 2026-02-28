@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -111,7 +112,15 @@ export default function RegisterPage({ onSubmit, isLoading }: RegisterPageProps)
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-md w-full space-y-8">
-                <div>
+                <div className="flex flex-col items-center">
+                    <Image
+                        src="/twa.png"
+                        alt="TWA Logo"
+                        width={80}
+                        height={80}
+                        className="rounded-xl"
+                        priority
+                    />
                     <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
                         Create your account
                     </h2>
