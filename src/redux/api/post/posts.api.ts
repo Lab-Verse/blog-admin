@@ -6,6 +6,7 @@ import {
   PostsQueryParams,
   CreatePostRequest,
   UpdatePostRequest,
+  PostsPaginatedResponse,
 } from '../../types/post/posts.types';
 
 const buildQueryString = (params?: PostsQueryParams): string => {
@@ -25,12 +26,12 @@ const buildQueryString = (params?: PostsQueryParams): string => {
 export const postsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     /** List posts with optional filters/pagination */
-    getPosts: builder.query<Post[], PostsQueryParams | void>({
+    getPosts: builder.query<PostsPaginatedResponse, PostsQueryParams | void>({
       query: (params) => `/posts${buildQueryString(params || undefined)}`,
-      transformResponse: (response: any): Post[] => {
-        const posts = Array.isArray(response) ? response : response?.items || response?.data || [];
+      transformResponse: (response: any): PostsPaginatedResponse => {
+        const posts = Array.isArray(response) ? response : response?.data || response?.items || [];
         // Flatten media array in each post
-        return posts.map((post: any) => {
+        const transformedPosts = posts.map((post: any) => {
           if (post.media && Array.isArray(post.media)) {
             post.media = post.media.map((pm: any) => ({
               id: pm.media?.id || pm.media_id || pm.id,
@@ -43,11 +44,17 @@ export const postsApi = baseApi.injectEndpoints({
           }
           return post;
         });
+        return {
+          data: transformedPosts,
+          total: response?.total || posts.length,
+          page: response?.page || 1,
+          limit: response?.limit || 20,
+        };
       },
       providesTags: (result) =>
-        result
+        result?.data
           ? [
-              ...result.map((p) => ({ type: 'Post' as const, id: p.id })),
+              ...result.data.map((p) => ({ type: 'Post' as const, id: p.id })),
               { type: 'Post' as const, id: 'LIST' },
             ]
           : [{ type: 'Post' as const, id: 'LIST' }],
@@ -130,6 +137,48 @@ export const postsApi = baseApi.injectEndpoints({
     getPostReactions: builder.query<unknown[], string>({
       query: (id) => `/posts/${id}/reactions`,
     }),
+
+    /** Admin: Get pending posts */
+    getPendingPosts: builder.query<Post[], void>({
+      query: () => '/posts/admin/pending',
+      transformResponse: (response: any): Post[] => {
+        return Array.isArray(response) ? response : response?.data || [];
+      },
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map((p) => ({ type: 'Post' as const, id: p.id })),
+              { type: 'Post' as const, id: 'PENDING' },
+            ]
+          : [{ type: 'Post' as const, id: 'PENDING' }],
+    }),
+
+    /** Admin: Approve post */
+    approvePost: builder.mutation<{ success: boolean; message: string }, string>({
+      query: (id) => ({
+        url: `/posts/admin/${id}/approve`,
+        method: 'POST',
+      }),
+      invalidatesTags: (result, _err, id) => [
+        { type: 'Post', id },
+        { type: 'Post', id: 'LIST' },
+        { type: 'Post', id: 'PENDING' },
+      ],
+    }),
+
+    /** Admin: Reject post */
+    rejectPost: builder.mutation<{ success: boolean; message: string }, { id: string; reason?: string }>({
+      query: ({ id, reason }) => ({
+        url: `/posts/admin/${id}/reject`,
+        method: 'POST',
+        body: { reason },
+      }),
+      invalidatesTags: (result, _err, { id }) => [
+        { type: 'Post', id },
+        { type: 'Post', id: 'LIST' },
+        { type: 'Post', id: 'PENDING' },
+      ],
+    }),
   }),
   overrideExisting: false,
 });
@@ -143,4 +192,7 @@ export const {
   useGetPostMediaQuery,
   useGetPostTagsQuery,
   useGetPostReactionsQuery,
+  useGetPendingPostsQuery,
+  useApprovePostMutation,
+  useRejectPostMutation,
 } = postsApi;

@@ -48,12 +48,19 @@ const Page: React.FC = () => {
         }
       }
 
-      // Upload profile picture
+      // Upload profile picture (don't let this fail the entire save)
+      let pictureWarning = '';
       if (profileImage) {
-        await uploadPicture({ id, file: profileImage }).unwrap();
+        try {
+          await uploadPicture({ id, file: profileImage }).unwrap();
+        } catch (picError: any) {
+          console.error('Failed to upload profile picture:', picError);
+          pictureWarning = '\n\nNote: Profile picture upload failed - ' + 
+            (picError?.data?.message || picError?.message || 'Unknown error');
+        }
       }
 
-      alert('User updated successfully!');
+      alert('User updated successfully!' + pictureWarning);
       router.push(`/users/${id}`);
     } catch (error: any) {
       console.error('Failed to update user:', error);

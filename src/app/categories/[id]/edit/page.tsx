@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import CategoryForm from '@/components/categories/ui/CategoryForm';
-import { useGetCategoryByIdQuery, useUpdateCategoryMutation } from '@/redux/api/category/categoriesApi';
+import { useGetCategoryByIdQuery, useUpdateCategoryMutation, useGetCategoriesQuery } from '@/redux/api/category/categoriesApi';
 import { UpdateCategoryDto } from '@/redux/types/category/categories.types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -13,13 +13,27 @@ export default function Page() {
     const id = params.id as string;
 
     const { data: category, isLoading: isFetching } = useGetCategoryByIdQuery(id);
+    const { data: categoriesData } = useGetCategoriesQuery({ limit: 100 });
     const [updateCategory, { isLoading: isUpdating }] = useUpdateCategoryMutation();
     const [error, setError] = useState<string | null>(null);
 
-    const handleSubmit = async (data: UpdateCategoryDto) => {
+    const handleSubmit = async (data: UpdateCategoryDto, image?: File) => {
         try {
             setError(null);
-            await updateCategory({ id, data }).unwrap();
+            
+            if (image) {
+                // Use FormData for image upload
+                const formData = new FormData();
+                if (data.name) formData.append('name', data.name);
+                if (data.slug) formData.append('slug', data.slug);
+                if (data.parent_id) formData.append('parent_id', data.parent_id);
+                if (data.is_active !== undefined) formData.append('is_active', String(data.is_active));
+                formData.append('image', image);
+                await updateCategory({ id, data: formData }).unwrap();
+            } else {
+                await updateCategory({ id, data }).unwrap();
+            }
+            
             router.push('/categories');
         } catch (err: any) {
             setError(err?.data?.message || 'Failed to update category');
@@ -72,6 +86,8 @@ export default function Page() {
                         )}
                         <CategoryForm
                             initialData={category}
+                            categories={categoriesData?.items || []}
+                            currentCategoryId={id}
                             onSubmit={handleSubmit}
                             onCancel={() => router.push('/categories')}
                             isLoading={isUpdating}

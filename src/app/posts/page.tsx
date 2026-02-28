@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import PostsPageComponent from '@/components/posts/pages/PostsPageComponent';
-import { useGetPostsQuery, useDeletePostMutation } from '@/redux/api/post/posts.api';
+import { useGetPostsQuery, useDeletePostMutation, useApprovePostMutation, useRejectPostMutation } from '@/redux/api/post/posts.api';
 import { Post } from '@/redux/types/post/posts.types';
 import { useRouter } from 'next/navigation';
 
@@ -16,6 +16,8 @@ export default function PostsPage() {
     refetchOnMountOrArgChange: true,
   });
   const [deletePost] = useDeletePostMutation();
+  const [approvePost] = useApprovePostMutation();
+  const [rejectPost] = useRejectPostMutation();
 
   const handleAdd = () => {
     router.push('/posts/create');
@@ -31,16 +33,33 @@ export default function PostsPage() {
     }
   };
 
+  const handleApprove = async (post: Post) => {
+    if (confirm(`Approve "${post.title}" for publishing?`)) {
+      await approvePost(post.id);
+    }
+  };
+
+  const handleReject = async (post: Post) => {
+    const reason = prompt('Enter rejection reason (optional):');
+    if (reason !== null) {
+      await rejectPost({ id: post.id, reason: reason || undefined });
+    }
+  };
+
+  const totalPages = postsData ? Math.ceil(postsData.total / limit) : 1;
+
   return (
     <PostsPageComponent
-      posts={postsData || []}
+      posts={postsData?.data || []}
       isLoading={isLoading}
       onAdd={handleAdd}
       onEdit={handleEdit}
       onDelete={handleDelete}
+      onApprove={handleApprove}
+      onReject={handleReject}
       currentPage={page}
       onPageChange={setPage}
-      totalPages={1}
+      totalPages={totalPages}
     />
   );
 }

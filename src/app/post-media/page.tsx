@@ -11,7 +11,8 @@ import {
 } from '@/redux/api/postmedia/postMedia.api';
 
 export default function Page() {
-    const { data: posts, isLoading: isLoadingPosts } = useGetPostsQuery();
+    const { data: postsData, isLoading: isLoadingPosts } = useGetPostsQuery();
+    const posts = postsData?.data || [];
     const { data: mediaData } = useGetMediaQuery();
     const mediaItems = Array.isArray(mediaData) ? mediaData : mediaData?.items || [];
 

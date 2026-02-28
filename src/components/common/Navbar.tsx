@@ -1,11 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/redux/store';
-import { clearAuth } from '@/redux/slices/auth/authSlice';
+import { clearAuth, setUserProfile } from '@/redux/slices/auth/authSlice';
+import { useGetUserByIdQuery } from '@/redux/api/user/usersApi';
 import { Menu, Bell, Search, ChevronDown, User, Settings, LogOut, HelpCircle } from 'lucide-react';
+import Image from 'next/image';
 
 interface NavbarProps {
   toggleSidebar: () => void;
@@ -18,6 +20,31 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
   const router = useRouter();
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.auth.user);
+
+  // Fetch full user data (including profile) when we have a user ID
+  const { data: fullUser } = useGetUserByIdQuery(user?.id ?? '', {
+    skip: !user?.id,
+  });
+
+  // Update auth state with profile data when full user data loads
+  useEffect(() => {
+    if (fullUser?.profile && user?.id) {
+      dispatch(setUserProfile(fullUser.profile));
+    }
+  }, [fullUser, user?.id, dispatch]);
+
+  // Compute display values
+  const displayName = user?.display_name || 
+    (user?.profile?.first_name && user?.profile?.last_name 
+      ? `${user.profile.first_name} ${user.profile.last_name}` 
+      : user?.username || 'Admin');
+  const displayEmail = user?.email || '';
+  const displayRole = user?.role || 'Administrator';
+  const profilePicture = user?.profile?.profile_picture || fullUser?.profile?.profile_picture;
+  const initials = user?.profile?.first_name && user?.profile?.last_name
+    ? `${user.profile.first_name[0]}${user.profile.last_name[0]}`.toUpperCase()
+    : (user?.display_name ? user.display_name.slice(0, 2).toUpperCase() 
+      : (user?.username ? user.username.slice(0, 2).toUpperCase() : 'AD'));
 
   // Mock notifications
   const notifications = [
@@ -117,12 +144,22 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
               onClick={() => setShowProfileMenu(!showProfileMenu)}
               className="flex items-center gap-3 p-1.5 pr-3 rounded-lg hover:bg-secondary-100 transition-colors"
             >
-              <div className="w-8 h-8 rounded-full bg-linear-to-tr from-primary-500 to-primary-600 flex items-center justify-center text-white font-medium text-sm shadow-md shadow-primary-500/20">
-                {user?.name ? user.name.substring(0, 2).toUpperCase() : 'AD'}
-              </div>
+              {profilePicture ? (
+                <Image
+                  src={profilePicture}
+                  alt={displayName}
+                  width={32}
+                  height={32}
+                  className="w-8 h-8 rounded-full object-cover shadow-md shadow-primary-500/20"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-linear-to-tr from-primary-500 to-primary-600 flex items-center justify-center text-white font-medium text-sm shadow-md shadow-primary-500/20">
+                  {initials}
+                </div>
+              )}
               <div className="hidden sm:block text-left">
-                <p className="text-sm font-medium text-secondary-900 leading-none">{user?.name || 'Admin'}</p>
-                <p className="text-xs text-secondary-500 mt-0.5">{user?.role || 'Administrator'}</p>
+                <p className="text-sm font-medium text-secondary-900 leading-none">{displayName}</p>
+                <p className="text-xs text-secondary-500 mt-0.5">{displayRole}</p>
               </div>
               <ChevronDown
                 size={16}
@@ -135,19 +172,54 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
             {showProfileMenu && (
               <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-secondary-200 overflow-hidden z-50">
                 <div className="p-4 border-b border-secondary-100 bg-linear-to-r from-primary-50 to-accent-50">
-                  <p className="font-semibold text-secondary-900">{user?.name || 'Admin User'}</p>
-                  <p className="text-sm text-secondary-600">{user?.email || 'admin@example.com'}</p>
+                  <div className="flex items-center gap-3">
+                    {profilePicture ? (
+                      <Image
+                        src={profilePicture}
+                        alt={displayName}
+                        width={40}
+                        height={40}
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-linear-to-tr from-primary-500 to-primary-600 flex items-center justify-center text-white font-medium text-sm">
+                        {initials}
+                      </div>
+                    )}
+                    <div>
+                      <p className="font-semibold text-secondary-900">{displayName}</p>
+                      <p className="text-sm text-secondary-600">{displayEmail}</p>
+                    </div>
+                  </div>
                 </div>
                 <div className="p-2">
-                  <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-secondary-100 text-secondary-700 transition-colors">
+                  <button
+                    onClick={() => {
+                      setShowProfileMenu(false);
+                      router.push(user?.id ? `/users/${user.id}` : '/users');
+                    }}
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-secondary-100 text-secondary-700 transition-colors"
+                  >
                     <User size={16} />
                     <span className="text-sm font-medium">My Profile</span>
                   </button>
-                  <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-secondary-100 text-secondary-700 transition-colors">
+                  <button
+                    onClick={() => {
+                      setShowProfileMenu(false);
+                      router.push('/settings');
+                    }}
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-secondary-100 text-secondary-700 transition-colors"
+                  >
                     <Settings size={16} />
                     <span className="text-sm font-medium">Settings</span>
                   </button>
-                  <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-secondary-100 text-secondary-700 transition-colors">
+                  <button
+                    onClick={() => {
+                      setShowProfileMenu(false);
+                      window.open('mailto:abidchaudhry063@gmail.com?subject=Help%20%26%20Support', '_blank');
+                    }}
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-secondary-100 text-secondary-700 transition-colors"
+                  >
                     <HelpCircle size={16} />
                     <span className="text-sm font-medium">Help & Support</span>
                   </button>

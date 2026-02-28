@@ -58,6 +58,11 @@ const authSlice = createSlice({
       Cookies.remove('accessToken');
       Cookies.remove('refreshToken');
     },
+    setUserProfile: (state, action: PayloadAction<any>) => {
+      if (state.user) {
+        state.user.profile = action.payload;
+      }
+    },
   },
   extraReducers: (builder) => {
     // LOGIN
@@ -132,5 +137,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { setCredentials, initAuth, clearAuth } = authSlice.actions;
+export const { setCredentials, initAuth, clearAuth, setUserProfile } = authSlice.actions;
 export default authSlice.reducer;

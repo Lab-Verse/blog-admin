@@ -37,6 +37,7 @@ export interface User {
   role?: UserRole;
   role_id?: string;
   status: UserStatus;
+  can_publish?: boolean;
   profile?: UserProfile | null;
   created_at?: string;
   updated_at?: string;
@@ -75,6 +76,7 @@ export interface UpdateUserDto {
   role?: string;
   role_id?: string;
   status?: UserStatus;
+  can_publish?: boolean;
 }
 
 export interface CreateUserProfileDto {

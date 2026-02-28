@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import CategoryForm from '@/components/categories/ui/CategoryForm';
-import { useCreateCategoryMutation } from '@/redux/api/category/categoriesApi';
+import { useCreateCategoryMutation, useGetCategoriesQuery } from '@/redux/api/category/categoriesApi';
 import { CreateCategoryDto } from '@/redux/types/category/categories.types';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,12 +10,26 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 export default function Page() {
     const router = useRouter();
     const [createCategory, { isLoading }] = useCreateCategoryMutation();
+    const { data: categoriesData } = useGetCategoriesQuery({ limit: 100 });
     const [error, setError] = useState<string | null>(null);
 
-    const handleSubmit = async (data: CreateCategoryDto) => {
+    const handleSubmit = async (data: CreateCategoryDto, image?: File) => {
         try {
             setError(null);
-            await createCategory(data).unwrap();
+            
+            if (image) {
+                // Use FormData for image upload
+                const formData = new FormData();
+                formData.append('name', data.name);
+                if (data.slug) formData.append('slug', data.slug);
+                if (data.parent_id) formData.append('parent_id', data.parent_id);
+                formData.append('is_active', String(data.is_active ?? true));
+                formData.append('image', image);
+                await createCategory(formData).unwrap();
+            } else {
+                await createCategory(data).unwrap();
+            }
+            
             router.push('/categories');
         } catch (err) {
             const errorMessage = err && typeof err === 'object' && 'data' in err 
@@ -45,6 +59,7 @@ export default function Page() {
                             </div>
                         )}
                         <CategoryForm
+                            categories={categoriesData?.items || []}
                             onSubmit={handleSubmit}
                             onCancel={() => router.push('/categories')}
                             isLoading={isLoading}

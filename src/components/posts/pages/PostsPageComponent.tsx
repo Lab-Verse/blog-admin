@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Post, PostStatus } from '@/redux/types/post/posts.types';
 import { CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Search, Plus, Edit, Trash2, Eye, Calendar, User, LayoutGrid, List as ListIcon } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Eye, Calendar, User, LayoutGrid, List as ListIcon, Check, X } from 'lucide-react';
 import Image from 'next/image';
 
 interface PostsPageComponentProps {
@@ -14,6 +14,8 @@ interface PostsPageComponentProps {
   onAdd: () => void;
   onEdit: (post: Post) => void;
   onDelete: (post: Post) => void;
+  onApprove?: (post: Post) => void;
+  onReject?: (post: Post) => void;
   currentPage: number;
   onPageChange: (page: number) => void;
   totalPages: number;
@@ -25,6 +27,8 @@ export default function PostsPageComponent({
   onAdd,
   onEdit,
   onDelete,
+  onApprove,
+  onReject,
   currentPage,
   onPageChange,
   totalPages,
@@ -44,6 +48,7 @@ export default function PostsPageComponent({
   const getStatusBadge = (status: PostStatus) => {
     const styles = {
       [PostStatus.PUBLISHED]: 'bg-emerald-500/10 text-emerald-600 border-emerald-200 ring-1 ring-emerald-500/20',
+      [PostStatus.PENDING]: 'bg-orange-500/10 text-orange-600 border-orange-200 ring-1 ring-orange-500/20',
       [PostStatus.DRAFT]: 'bg-amber-500/10 text-amber-600 border-amber-200 ring-1 ring-amber-500/20',
       [PostStatus.ARCHIVED]: 'bg-slate-500/10 text-slate-600 border-slate-200 ring-1 ring-slate-500/20',
     };
@@ -117,6 +122,7 @@ export default function PostsPageComponent({
             >
               <option value="all">All Status</option>
               <option value={PostStatus.PUBLISHED}>Published</option>
+              <option value={PostStatus.PENDING}>Pending Approval</option>
               <option value={PostStatus.DRAFT}>Draft</option>
               <option value={PostStatus.ARCHIVED}>Archived</option>
             </select>
@@ -198,24 +204,49 @@ export default function PostsPageComponent({
                     </div>
 
                     <div className="flex gap-2 pt-2 border-t border-slate-50" onClick={(e) => e.stopPropagation()}>
-                      <Button
-                        onClick={() => onEdit(post)}
-                        variant="ghost"
-                        size="sm"
-                        className="flex-1 text-slate-600 hover:text-primary-600 hover:bg-primary-50"
-                      >
-                        <Edit className="w-4 h-4 mr-1.5" />
-                        Edit
-                      </Button>
-                      <Button
-                        onClick={() => onDelete(post)}
-                        variant="ghost"
-                        size="sm"
-                        className="flex-1 text-slate-600 hover:text-red-600 hover:bg-red-50"
-                      >
-                        <Trash2 className="w-4 h-4 mr-1.5" />
-                        Delete
-                      </Button>
+                      {post.status === PostStatus.PENDING && onApprove && onReject ? (
+                        <>
+                          <Button
+                            onClick={() => onApprove(post)}
+                            variant="ghost"
+                            size="sm"
+                            className="flex-1 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                          >
+                            <Check className="w-4 h-4 mr-1.5" />
+                            Approve
+                          </Button>
+                          <Button
+                            onClick={() => onReject(post)}
+                            variant="ghost"
+                            size="sm"
+                            className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <X className="w-4 h-4 mr-1.5" />
+                            Reject
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <Button
+                            onClick={() => onEdit(post)}
+                            variant="ghost"
+                            size="sm"
+                            className="flex-1 text-slate-600 hover:text-primary-600 hover:bg-primary-50"
+                          >
+                            <Edit className="w-4 h-4 mr-1.5" />
+                            Edit
+                          </Button>
+                          <Button
+                            onClick={() => onDelete(post)}
+                            variant="ghost"
+                            size="sm"
+                            className="flex-1 text-slate-600 hover:text-red-600 hover:bg-red-50"
+                          >
+                            <Trash2 className="w-4 h-4 mr-1.5" />
+                            Delete
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </div>
                 </CardContent>

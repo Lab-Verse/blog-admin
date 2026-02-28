@@ -11,6 +11,7 @@ export interface Category {
   name: string;
   slug: string;
   parent_id?: string | null;
+  image_url?: string | null;
   posts_count: number;
   followers_count: number;
   is_active: boolean;
@@ -37,6 +38,7 @@ export interface CreateCategoryDto {
   slug?: string;
   parent_id?: string | null;
   is_active?: boolean;
+  image_url?: string | null;
 }
 
 export interface UpdateCategoryDto {
@@ -44,6 +46,7 @@ export interface UpdateCategoryDto {
   slug?: string;
   parent_id?: string | null;
   is_active?: boolean;
+  image_url?: string | null;
 }
 
 export interface CategoriesState {

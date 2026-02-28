@@ -45,8 +45,8 @@ export const categoriesApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // POST /categories
-    createCategory: builder.mutation<Category, CreateCategoryDto>({
+    // POST /categories (with optional image upload)
+    createCategory: builder.mutation<Category, CreateCategoryDto | FormData>({
       query: (body) => ({
         url: '/categories',
         method: 'POST',
@@ -55,10 +55,10 @@ export const categoriesApi = baseApi.injectEndpoints({
       invalidatesTags: [{ type: 'Category', id: 'LIST' }],
     }),
 
-    // PATCH /categories/:id
+    // PATCH /categories/:id (with optional image upload)
     updateCategory: builder.mutation<
       Category,
-      { id: string; data: UpdateCategoryDto }
+      { id: string; data: UpdateCategoryDto | FormData }
     >({
       query: ({ id, data }) => ({
         url: `/categories/${id}`,

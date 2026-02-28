@@ -22,6 +22,7 @@ export default function UpdateUserPage({ user, onSubmit, isLoading }: UpdateUser
         email: '',
         role: '',
         status: UserStatus.ACTIVE,
+        can_publish: false,
     });
     const [profileData, setProfileData] = useState<CreateUserProfileDto>({
         first_name: '',
@@ -45,6 +46,7 @@ export default function UpdateUserPage({ user, onSubmit, isLoading }: UpdateUser
                 display_name: user.display_name,
                 role: user.role,
                 status: user.status,
+                can_publish: user.can_publish || false,
             });
             
             if (user.profile) {
@@ -215,6 +217,21 @@ export default function UpdateUserPage({ user, onSubmit, isLoading }: UpdateUser
                                     <option value={UserStatus.BANNED}>Banned</option>
                                 </select>
                             </div>
+                        </div>
+
+                        {/* Publishing Permission */}
+                        <div className="flex items-center gap-3 pt-2">
+                            <input
+                                type="checkbox"
+                                id="can_publish"
+                                name="can_publish"
+                                checked={formData.can_publish || false}
+                                onChange={(e) => setFormData((prev) => ({ ...prev, can_publish: e.target.checked }))}
+                                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <label htmlFor="can_publish" className="text-sm font-medium text-gray-700">
+                                Can publish posts without admin approval
+                            </label>
                         </div>
                     </CardContent>
                 </Card>

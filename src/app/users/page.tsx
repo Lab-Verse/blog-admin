@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import UsersPageComponent from '@/components/users/pages/UsersPageComponent';
-import { useGetUsersQuery, useDeleteUserMutation } from '@/redux/api/user/usersApi';
+import { useGetUsersQuery, useDeleteUserMutation, useVerifyUserMutation, useRejectUserMutation } from '@/redux/api/user/usersApi';
 import { User } from '@/redux/types/user/users.types';
 import { useRouter } from 'next/navigation';
 
@@ -16,6 +16,8 @@ export default function UsersPage() {
     refetchOnMountOrArgChange: true,
   });
   const [deleteUser] = useDeleteUserMutation();
+  const [verifyUser] = useVerifyUserMutation();
+  const [rejectUser] = useRejectUserMutation();
 
   const handleAdd = () => {
     router.push('/users/create');
@@ -35,6 +37,23 @@ export default function UsersPage() {
     }
   };
 
+  const handleApprove = async (user: User) => {
+    try {
+      await verifyUser(user.id).unwrap();
+    } catch (error: any) {
+      alert('Failed to approve user: ' + (error?.data?.message || error.message));
+    }
+  };
+
+  const handleReject = async (user: User) => {
+    const reason = prompt('Enter rejection reason (optional):');
+    try {
+      await rejectUser({ id: user.id, reason: reason || undefined }).unwrap();
+    } catch (error: any) {
+      alert('Failed to reject user: ' + (error?.data?.message || error.message));
+    }
+  };
+
   return (
     <UsersPageComponent
       users={usersData?.items || []}
@@ -43,6 +62,8 @@ export default function UsersPage() {
       onEdit={handleEdit}
       onView={handleView}
       onDelete={handleDelete}
+      onApprove={handleApprove}
+      onReject={handleReject}
       currentPage={page}
       onPageChange={setPage}
       totalPages={Math.ceil((usersData?.total || 0) / limit)}

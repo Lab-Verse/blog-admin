@@ -94,10 +94,11 @@ export default function EnhancedDashboard() {
 
   const topTags = useMemo(() => {
     const counts = new Map<string, number>();
-    const posts = Array.isArray(postsQuery.data) ? postsQuery.data : [];
+    const postsData = postsQuery.data;
+    const posts = Array.isArray(postsData) ? postsData : (postsData?.data || []);
 
-    posts.forEach((post) => {
-      (post.tags || []).forEach((tag) => {
+    posts.forEach((post: any) => {
+      (post.tags || []).forEach((tag: any) => {
         counts.set(tag.name, (counts.get(tag.name) || 0) + 1);
       });
     });

@@ -173,11 +173,15 @@ export default function SideNavbar() {
           <div className="px-6 py-4 border-t border-secondary-700 bg-secondary-800/50">
             <div className="flex items-center gap-3 p-3 rounded-lg bg-linear-to-r from-primary-500/10 to-accent-500/10 border border-primary-500/20">
               <div className="w-10 h-10 rounded-full bg-linear-to-br from-primary-500 to-accent-500 flex items-center justify-center text-white font-bold shadow-md">
-                {user?.name ? user.name.substring(0, 2).toUpperCase() : 'AD'}
+                {user?.display_name
+                  ? user.display_name.slice(0, 2).toUpperCase()
+                  : user?.username
+                    ? user.username.slice(0, 2).toUpperCase()
+                    : 'AD'}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-white truncate">{user?.name || 'Admin User'}</p>
-                <p className="text-xs text-secondary-400 truncate">{user?.email || 'admin@example.com'}</p>
+                <p className="text-sm font-semibold text-white truncate">{user?.display_name || user?.username || 'Admin User'}</p>
+                <p className="text-xs text-secondary-400 truncate">{user?.email || ''}</p>
               </div>
             </div>
             <p className="text-xs text-secondary-500 mt-4 text-center">© 2025 Blog Admin</p>

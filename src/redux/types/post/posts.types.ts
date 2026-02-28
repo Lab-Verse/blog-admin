@@ -2,6 +2,7 @@
 
 export enum PostStatus {
   DRAFT = 'draft',
+  PENDING = 'pending',
   PUBLISHED = 'published',
   ARCHIVED = 'archived',
 }
@@ -83,6 +84,14 @@ export interface CreatePostRequest {
 
 /** Body for updating a post (UpdatePostDto extends PartialType<CreatePostDto>) */
 export type UpdatePostRequest = Partial<CreatePostRequest>;
+
+/** Paginated response from API */
+export interface PostsPaginatedResponse {
+  data: Post[];
+  total: number;
+  page: number;
+  limit: number;
+}
 
 /** Slice state */
 export interface PostsState {

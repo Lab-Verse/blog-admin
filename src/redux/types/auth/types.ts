@@ -4,13 +4,22 @@ export type UserRole = 'admin' | 'user' | 'manager' | string;
 
 export interface AuthUser {
   id: string;
+  username: string;
   email: string;
-  name: string;
-  phone?: string;
+  display_name?: string;
   role: UserRole;
-  isActive: boolean;
-  createdAt?: string;
-  updatedAt?: string;
+  role_id?: string;
+  status: string;
+  profile?: {
+    first_name?: string;
+    last_name?: string;
+    profile_picture?: string;
+    bio?: string;
+    phone?: string;
+    location?: string;
+  } | null;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface BaseApiResponse<T = unknown> {

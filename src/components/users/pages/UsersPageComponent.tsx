@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { User, UserStatus } from '@/redux/types/user/users.types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Search, Plus, Edit, Trash2, Eye, Mail, Calendar, Shield, Users as UsersIcon, LayoutGrid, List as ListIcon } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Eye, Mail, Calendar, Shield, Users as UsersIcon, LayoutGrid, List as ListIcon, CheckCircle, XCircle, Clock } from 'lucide-react';
 import Image from 'next/image';
 
 interface UsersPageComponentProps {
@@ -14,6 +14,8 @@ interface UsersPageComponentProps {
   onEdit: (user: User) => void;
   onView: (user: User) => void;
   onDelete: (user: User) => void;
+  onApprove?: (user: User) => void;
+  onReject?: (user: User) => void;
   currentPage: number;
   onPageChange: (page: number) => void;
   totalPages: number;
@@ -26,6 +28,8 @@ export default function UsersPageComponent({
   onEdit,
   onView,
   onDelete,
+  onApprove,
+  onReject,
   currentPage,
   onPageChange,
   totalPages,
@@ -113,11 +117,12 @@ export default function UsersPageComponent({
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
           {[
             { label: 'Total Users', value: users.length, icon: UsersIcon, color: 'text-blue-600', bg: 'bg-blue-50' },
             { label: 'Active', value: users.filter(u => u.status === UserStatus.ACTIVE).length, icon: Shield, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-            { label: 'Inactive', value: users.filter(u => u.status === UserStatus.INACTIVE).length, icon: Eye, color: 'text-amber-600', bg: 'bg-amber-50' },
+            { label: 'Pending', value: users.filter(u => u.status === UserStatus.PENDING).length, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
+            { label: 'Inactive', value: users.filter(u => u.status === UserStatus.INACTIVE).length, icon: Eye, color: 'text-slate-600', bg: 'bg-slate-50' },
             { label: 'Banned', value: users.filter(u => u.status === UserStatus.BANNED).length, icon: Trash2, color: 'text-rose-600', bg: 'bg-rose-50' },
           ].map((stat, i) => (
             <Card key={i} className="border-0 shadow-sm hover:shadow-md transition-all duration-300">
@@ -153,6 +158,7 @@ export default function UsersPageComponent({
               className="px-4 py-2.5 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-primary-500/20 text-slate-700 font-medium min-w-[160px] cursor-pointer hover:bg-slate-100 transition-colors"
             >
               <option value="all">All Status</option>
+              <option value={UserStatus.PENDING}>Pending</option>
               <option value={UserStatus.ACTIVE}>Active</option>
               <option value={UserStatus.INACTIVE}>Inactive</option>
               <option value={UserStatus.BANNED}>Banned</option>
@@ -243,7 +249,29 @@ export default function UsersPageComponent({
                       )}
                     </div>
 
-                    <div className={`flex gap-2 ${viewMode === 'list' ? '' : 'pt-4 border-t border-slate-50'}`} onClick={(e) => e.stopPropagation()}>
+                    <div className={`flex gap-2 flex-wrap ${viewMode === 'list' ? '' : 'pt-4 border-t border-slate-50'}`} onClick={(e) => e.stopPropagation()}>
+                      {user.status === UserStatus.PENDING && onApprove && onReject ? (
+                        <>
+                          <Button
+                            onClick={() => onApprove(user)}
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border-emerald-200"
+                          >
+                            <CheckCircle className="w-4 h-4 mr-1.5" />
+                            Approve
+                          </Button>
+                          <Button
+                            onClick={() => onReject(user)}
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200"
+                          >
+                            <XCircle className="w-4 h-4 mr-1.5" />
+                            Reject
+                          </Button>
+                        </>
+                      ) : null}
                       <Button
                         onClick={() => onView(user)}
                         variant="outline"

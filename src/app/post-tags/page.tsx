@@ -11,7 +11,8 @@ import {
 } from '@/redux/api/posttag/postTags.api';
 
 export default function Page() {
-    const { data: posts, isLoading: isLoadingPosts } = useGetPostsQuery();
+    const { data: postsData, isLoading: isLoadingPosts } = useGetPostsQuery();
+    const posts = postsData?.data || [];
     const { data: tags } = useGetTagsQuery();
 
     const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
