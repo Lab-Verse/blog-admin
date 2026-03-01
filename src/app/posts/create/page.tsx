@@ -34,8 +34,6 @@ export default function Page() {
         media_ids?: string[];
     }) => {
         try {
-            console.log('Submitting post data:', data);
-            
             if (data.featured_image instanceof File) {
                 const formData = new FormData();
                 formData.append('title', data.title);
@@ -54,13 +52,9 @@ export default function Page() {
                     formData.append('media_ids', JSON.stringify(data.media_ids));
                 }
                 
-                console.log('Sending FormData with featured_image');
                 const result = await createPost(formData).unwrap();
-                console.log('Post created successfully:', result);
             } else {
-                console.log('Sending JSON data');
                 const result = await createPost(data as any).unwrap();
-                console.log('Post created successfully:', result);
             }
             
             router.push('/posts');

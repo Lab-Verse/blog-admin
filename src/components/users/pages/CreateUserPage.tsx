@@ -46,7 +46,6 @@ export default function CreateUserPage({ onSubmit }: CreateUserPageProps) {
         
         setIsLoading(true);
         try {
-            console.log('Submitting form data:', formData);
             await onSubmit(formData);
         } catch (error: any) {
             console.error('Error creating user:', error);

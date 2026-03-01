@@ -72,7 +72,6 @@ export default function PostForm({
     const [uploadMedia, { isLoading: isUploadingMedia }] = useUploadMediaMutation();
 
     useEffect(() => {
-        console.log('MediaList received:', mediaList);
         setMediaLibrary(mediaList);
     }, [mediaList]);
 
@@ -514,7 +513,6 @@ export default function PostForm({
                         <div className="space-y-2">
                             {(formData.media_ids || []).map((mediaId, index) => {
                                 const media = getMediaById(mediaId);
-                                console.log('Media for ID', mediaId, ':', media);
                                 if (!media) return null;
 
                                 return (

@@ -87,7 +87,6 @@ export default function CreatePostWithMultipleImages() {
 
       const post = await response.json();
       alert('Post created successfully!');
-      console.log('Created post:', post);
       
       // Reset form
       setFormData({

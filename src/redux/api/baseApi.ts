@@ -2,11 +2,6 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
-// Log the API URL on startup for debugging
-if (typeof window !== 'undefined') {
-  console.log('🌐 API Base URL:', baseUrl);
-}
-
 export const baseApi = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({
@@ -19,7 +14,6 @@ export const baseApi = createApi({
         };
       };
       const token = state?.auth?.accessToken;
-      console.log('🔑 Token from state:', token ? 'Token exists' : 'No token');
       if (token) {
         headers.set('Authorization', `Bearer ${token}`);
       }
@@ -51,6 +45,9 @@ export const baseApi = createApi({
     'AuthorFollower',
     'CategoryFollower',
     'Dashboard',
+    'PostTranslation',
+    'CategoryTranslation',
+    'TagTranslation',
   ],
   endpoints: () => ({}),
 });

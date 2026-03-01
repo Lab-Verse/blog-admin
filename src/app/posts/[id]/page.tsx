@@ -218,7 +218,6 @@ export default function SinglePostPage() {
     if (currentUser?.id) return true;
     if (isAuthenticated) {
       // Authenticated but user data still loading, just return false
-      console.log('User authenticated but data not loaded yet');
       return false;
     }
     // Not authenticated at all - this shouldn't happen in admin panel
@@ -441,7 +440,6 @@ export default function SinglePostPage() {
 
     if (!currentUser?.id) {
       // In admin panel, user should already be authenticated
-      console.log('User data not loaded yet');
       return;
     }
 

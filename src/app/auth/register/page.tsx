@@ -19,7 +19,6 @@ const Page: React.FC = () => {
         email: data.email, 
         password: data.password 
       }).unwrap();
-      console.log('✅ Registration successful:', result);
       toast.success('Account created successfully! Welcome aboard!');
       router.push('/dashboard');
     } catch (error: unknown) {

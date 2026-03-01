@@ -23,6 +23,7 @@ import {
   Bookmark,
   Eye,
   BarChart3,
+  Languages,
 } from 'lucide-react';
 
 const navigationSections = [
@@ -33,6 +34,7 @@ const navigationSections = [
       { name: 'Posts', href: '/posts', icon: FileText, badge: '12' },
       { name: 'Categories', href: '/categories', icon: FolderOpen, badge: null },
       { name: 'Tags', href: '/tags', icon: Tag, badge: null },
+      { name: 'Translations', href: '/translations', icon: Languages, badge: null },
     ],
   },
   {

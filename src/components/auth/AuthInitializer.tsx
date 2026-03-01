@@ -17,7 +17,6 @@ export default function AuthInitializer() {
   // Fetch user if token exists but user is not loaded
   useEffect(() => {
     if (accessToken && !user) {
-      console.log('[AuthInitializer] Token exists but user is not loaded. Attempting to load user...');
       // The token exists from cookies but user data is not in Redux.
       // This is normal - user data is populated during login.
       // The backend will use JWT to authenticate requests.

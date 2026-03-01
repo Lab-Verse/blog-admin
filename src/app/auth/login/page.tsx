@@ -52,7 +52,6 @@ const Page: React.FC = () => {
   const handleSubmit = async (data: { email: string; password: string }) => {
     try {
       const result = await login(data).unwrap();
-      console.log('✅ Login successful:', result);
       toast.success('Successfully logged in!');
       router.push('/dashboard');
     } catch (error: unknown) {

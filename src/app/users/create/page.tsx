@@ -12,9 +12,7 @@ const Page: React.FC = () => {
 
   const handleSubmit = async (data: CreateUserDto) => {
     try {
-      console.log('Creating user with data:', data);
       const result = await createUser(data).unwrap();
-      console.log('User created successfully:', result);
       alert('User created successfully!');
       router.push('/users');
     } catch (error: any) {

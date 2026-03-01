@@ -25,16 +25,10 @@ export default function AppShell({ children }: AppShellProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
 
-  // Debug auth state
-  console.log('[AppShell] Auth state:', { isAuthenticated, hasUser: !!user, hasToken: !!accessToken });
-
   // Fetch user data when authenticated but user data is missing
   const { data: meData, isLoading: mePending, error: meError } = useGetMeQuery(undefined, {
     skip: !isAuthenticated || !!user,
   });
-
-  // Debug getMe query
-  console.log('[AppShell] getMe result:', { meData, mePending, meError, skip: !isAuthenticated || !!user });
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 

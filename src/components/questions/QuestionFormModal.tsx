@@ -27,19 +27,6 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
     const { data: categoriesData, isLoading: isCategoriesLoading } = useGetCategoriesQuery({ page: 1, limit: 100 });
     const categories = categoriesData?.items ?? [];
 
-    // Debug logging
-    useEffect(() => {
-        if (isOpen && process.env.NODE_ENV === 'development') {
-            console.log('[QuestionFormModal] Form opened with:', {
-                userId,
-                userIdLength: userId?.length,
-                isUserLoading,
-                isLoading,
-                isEmpty: !userId || !userId.trim(),
-            });
-        }
-    }, [isOpen, userId, isUserLoading]);
-
     const getInitialFormData = (): CreateQuestionRequest => {
         if (question) {
             return {

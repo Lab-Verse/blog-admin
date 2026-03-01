@@ -141,15 +141,12 @@ const authSlice = createSlice({
     // GET ME - fetch current user data
     builder
       .addMatcher(authApi.endpoints.getMe.matchFulfilled, (state, action) => {
-        console.log('[AuthSlice] getMe fulfilled:', action.payload);
         const user = action.payload?.data;
         if (user) {
-          console.log('[AuthSlice] Setting user:', user);
           state.user = user;
         }
       })
       .addMatcher(authApi.endpoints.getMe.matchRejected, (state, action) => {
-        console.log('[AuthSlice] getMe rejected:', action.payload, action.error);
         // Only clear auth on 401 Unauthorized (invalid/expired token)
         const status = (action.payload as { status?: number })?.status;
         if (status === 401) {
