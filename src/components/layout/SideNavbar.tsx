@@ -24,6 +24,8 @@ import {
   Eye,
   BarChart3,
   Languages,
+  BookOpen,
+  Crown,
 } from 'lucide-react';
 
 const navigationSections = [
@@ -35,6 +37,8 @@ const navigationSections = [
       { name: 'Categories', href: '/categories', icon: FolderOpen, badge: null },
       { name: 'Tags', href: '/tags', icon: Tag, badge: null },
       { name: 'Translations', href: '/translations', icon: Languages, badge: null },
+      { name: 'E-Magazine', href: '/e-magazine', icon: BookOpen, badge: null },
+      { name: 'Leadership', href: '/leadership', icon: Crown, badge: null },
     ],
   },
   {
