@@ -179,6 +179,46 @@ export const postsApi = baseApi.injectEndpoints({
         { type: 'Post', id: 'PENDING' },
       ],
     }),
+
+    /** Bulk delete posts (calls individual DELETE for each) */
+    bulkDeletePosts: builder.mutation<void, string[]>({
+      async queryFn(ids, _api, _extraOptions, fetchWithBQ) {
+        try {
+          const results = await Promise.all(
+            ids.map((id) => fetchWithBQ({ url: `/posts/${id}`, method: 'DELETE' }))
+          );
+          const hasError = results.some((r) => r.error);
+          if (hasError) {
+            return { error: { status: 'CUSTOM_ERROR' as const, error: 'Some posts failed to delete' } };
+          }
+          return { data: undefined };
+        } catch (error) {
+          return { error: { status: 'CUSTOM_ERROR' as const, error: String(error) } };
+        }
+      },
+      invalidatesTags: [{ type: 'Post', id: 'LIST' }],
+    }),
+
+    /** Bulk update post status (calls individual PATCH for each) */
+    bulkUpdatePostStatus: builder.mutation<void, { ids: string[]; status: string }>({
+      async queryFn({ ids, status }, _api, _extraOptions, fetchWithBQ) {
+        try {
+          const results = await Promise.all(
+            ids.map((id) =>
+              fetchWithBQ({ url: `/posts/${id}`, method: 'PATCH', body: { status } })
+            )
+          );
+          const hasError = results.some((r) => r.error);
+          if (hasError) {
+            return { error: { status: 'CUSTOM_ERROR' as const, error: 'Some posts failed to update' } };
+          }
+          return { data: undefined };
+        } catch (error) {
+          return { error: { status: 'CUSTOM_ERROR' as const, error: String(error) } };
+        }
+      },
+      invalidatesTags: [{ type: 'Post', id: 'LIST' }, { type: 'Post', id: 'PENDING' }],
+    }),
   }),
   overrideExisting: false,
 });
@@ -195,4 +235,6 @@ export const {
   useGetPendingPostsQuery,
   useApprovePostMutation,
   useRejectPostMutation,
+  useBulkDeletePostsMutation,
+  useBulkUpdatePostStatusMutation,
 } = postsApi;
