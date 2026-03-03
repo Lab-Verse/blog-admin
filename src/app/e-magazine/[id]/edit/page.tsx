@@ -4,10 +4,13 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import {
   useGetEMagazineBySlugQuery,
-  useUpdateEMagazineMutation,
 } from '@/redux/api/e-magazine/eMagazineApi';
 import { useGetCategoriesQuery } from '@/redux/api/category/categoriesApi';
 import { useGetTagsQuery } from '@/redux/api/tags/tagsApi';
+import { useUploadWithProgress } from '@/lib/useUploadWithProgress';
+import UploadProgressBar from '@/components/common/UploadProgressBar';
+import { baseApi } from '@/redux/api/baseApi';
+import { useDispatch } from 'react-redux';
 import { ArrowLeft, Upload, X, FileText, Image as ImageIcon } from 'lucide-react';
 
 export default function EditEMagazinePage() {
@@ -18,7 +21,9 @@ export default function EditEMagazinePage() {
   // Fetch by ID — the backend findBySlug also works with UUID since we'll
   // add a findOne route; for now, we query by slug or ID
   const { data: magazine, isLoading: isLoadingMag } = useGetEMagazineBySlugQuery(id);
-  const [updateMagazine, { isLoading: isUpdating }] = useUpdateEMagazineMutation();
+  const dispatch = useDispatch();
+  const { upload, progress, status: uploadStatus, error: uploadError, reset: resetUpload, abort: abortUpload } = useUploadWithProgress();
+  const isUpdating = uploadStatus === 'uploading' || uploadStatus === 'success';
   const { data: categoriesData } = useGetCategoriesQuery();
   const { data: tagsData } = useGetTagsQuery();
 
@@ -72,22 +77,27 @@ export default function EditEMagazinePage() {
     }
 
     try {
-      await updateMagazine({
-        id,
-        title: title.trim(),
-        description: description.trim() || undefined,
-        issue_number: issueNumber,
-        published_date: publishedDate || undefined,
-        status,
-        page_count: pageCount ? Number(pageCount) : undefined,
-        category_id: categoryId || undefined,
-        tag_ids: selectedTagIds,
-        pdf_file: pdfFile || undefined,
-        cover_image: coverFile || undefined,
-      }).unwrap();
+      const formData = new FormData();
+      formData.append('title', title.trim());
+      if (description.trim()) formData.append('description', description.trim());
+      formData.append('issue_number', String(issueNumber));
+      if (publishedDate) formData.append('published_date', publishedDate);
+      if (status) formData.append('status', status);
+      if (pageCount) formData.append('page_count', String(pageCount));
+      if (categoryId) formData.append('category_id', categoryId);
+      selectedTagIds.forEach((tagId) => formData.append('tag_ids[]', tagId));
+      if (pdfFile) formData.append('pdf_file', pdfFile);
+      if (coverFile) formData.append('cover_image', coverFile);
+
+      await upload(`/e-magazines/${id}`, formData, 'PATCH');
+      // Invalidate RTK cache so the list refreshes
+      dispatch(baseApi.util.invalidateTags([
+        { type: 'EMagazine', id },
+        { type: 'EMagazine', id: 'LIST' },
+      ]));
       router.push('/e-magazine');
     } catch (error: any) {
-      alert(error?.data?.message || 'Failed to update magazine');
+      // Error is already shown in the progress bar
     }
   };
 
@@ -134,6 +144,14 @@ export default function EditEMagazinePage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Upload Progress */}
+        <UploadProgressBar
+          progress={progress}
+          status={uploadStatus}
+          error={uploadError}
+          onAbort={abortUpload}
+        />
+
         {/* PDF Upload / Replace */}
         <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-6 dark:border-gray-600 dark:bg-gray-800">
           <h3 className="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -387,7 +405,11 @@ export default function EditEMagazinePage() {
             disabled={isUpdating}
             className="rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
           >
-            {isUpdating ? 'Saving...' : 'Save Changes'}
+            {uploadStatus === 'uploading'
+              ? 'Uploading...'
+              : uploadStatus === 'success'
+                ? 'Processing...'
+                : 'Save Changes'}
           </button>
           <button
             type="button"
