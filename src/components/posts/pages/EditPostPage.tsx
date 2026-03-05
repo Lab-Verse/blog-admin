@@ -3,7 +3,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import PostForm from '../ui/PostForm';
-import { Post, PostStatus } from '@/redux/types/post/posts.types';
+import { Post, PostStatus, PostType } from '@/redux/types/post/posts.types';
 import { Category } from '@/redux/types/category/categories.types';
 import { Tag } from '@/redux/types/tags/types';
 import { Media } from '@/redux/types/media/media.types';
@@ -50,6 +50,7 @@ export default function EditPostPage({ post, categories, tags, mediaList, onSubm
                             description: post.description || '',
                             category_id: post.category_id,
                             status: post.status,
+                            post_type: post.post_type || PostType.STANDARD,
                             featured_image: post.featured_image || '',
                             tag_ids: post.tags?.map((tag) => tag.id) || [],
                             media_ids: (post.media || [])

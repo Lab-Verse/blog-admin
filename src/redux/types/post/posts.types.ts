@@ -7,6 +7,14 @@ export enum PostStatus {
   ARCHIVED = 'archived',
 }
 
+export enum PostType {
+  STANDARD = 'standard',
+  OPINION = 'opinion',
+  VIDEO = 'video',
+  AUDIO = 'audio',
+  GALLERY = 'gallery',
+}
+
 /** Entity returned by backend */
 export interface Post {
   id: string;
@@ -18,6 +26,7 @@ export interface Post {
   excerpt?: string;
   description?: string;
   status: PostStatus;
+  post_type?: PostType;
 
   category_id: string;
   user_id: string;
@@ -64,6 +73,7 @@ export interface PostsQueryParams {
   limit?: number;
   search?: string;
   status?: PostStatus;
+  post_type?: PostType;
   category_id?: string;
 }
 
@@ -76,6 +86,7 @@ export interface CreatePostRequest {
   description?: string;
   category_id: string;
   status?: PostStatus;
+  post_type?: PostType;
   featured_image?: string;
   tag_ids?: string[];
   media_ids?: string[];

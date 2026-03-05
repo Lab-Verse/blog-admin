@@ -33,6 +33,7 @@ export default function UpdateUserPage({ user, onSubmit, isLoading }: UpdateUser
         website_url: '',
         company: '',
         job_title: '',
+        is_columnist: false,
     });
     const [profileImage, setProfileImage] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string>('');
@@ -59,6 +60,7 @@ export default function UpdateUserPage({ user, onSubmit, isLoading }: UpdateUser
                     website_url: user.profile.website_url || '',
                     company: user.profile.company || '',
                     job_title: user.profile.job_title || '',
+                    is_columnist: user.profile.is_columnist || false,
                 });
                 
                 if (user.profile.profile_picture) {
@@ -231,6 +233,21 @@ export default function UpdateUserPage({ user, onSubmit, isLoading }: UpdateUser
                             />
                             <label htmlFor="can_publish" className="text-sm font-medium text-gray-700">
                                 Can publish posts without admin approval
+                            </label>
+                        </div>
+
+                        {/* Columnist Permission */}
+                        <div className="flex items-center gap-3 pt-1">
+                            <input
+                                type="checkbox"
+                                id="is_columnist"
+                                name="is_columnist"
+                                checked={profileData.is_columnist || false}
+                                onChange={(e) => setProfileData((prev) => ({ ...prev, is_columnist: e.target.checked }))}
+                                className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                            />
+                            <label htmlFor="is_columnist" className="text-sm font-medium text-gray-700">
+                                Columnist — can write Opinion posts
                             </label>
                         </div>
                     </CardContent>

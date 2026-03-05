@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { PostStatus } from '@/redux/types/post/posts.types';
+import { PostStatus, PostType } from '@/redux/types/post/posts.types';
 import { Category } from '@/redux/types/category/categories.types';
 import { Tag } from '@/redux/types/tags/types';
 import { Media, MediaType } from '@/redux/types/media/media.types';
@@ -23,6 +23,7 @@ interface PostFormData {
     description: string;
     category_id: string;
     status: PostStatus;
+    post_type: PostType;
     featured_image?: File | string;
     tag_ids?: string[];
     media_ids?: string[];
@@ -58,6 +59,7 @@ export default function PostForm({
             description: '',
             category_id: '',
             status: PostStatus.DRAFT,
+            post_type: PostType.STANDARD,
             featured_image: '',
             tag_ids: [],
             media_ids: [],
@@ -362,6 +364,25 @@ export default function PostForm({
                             <option value={PostStatus.DRAFT}>Draft</option>
                             <option value={PostStatus.PUBLISHED}>Published</option>
                             <option value={PostStatus.ARCHIVED}>Archived</option>
+                        </select>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label htmlFor="post_type" className="text-sm font-medium text-gray-700">
+                            Post Type
+                        </label>
+                        <select
+                            id="post_type"
+                            name="post_type"
+                            value={formData.post_type}
+                            onChange={handleChange}
+                            className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        >
+                            <option value={PostType.STANDARD}>Standard</option>
+                            <option value={PostType.OPINION}>Opinion</option>
+                            <option value={PostType.VIDEO}>Video</option>
+                            <option value={PostType.AUDIO}>Audio</option>
+                            <option value={PostType.GALLERY}>Gallery</option>
                         </select>
                     </div>
 

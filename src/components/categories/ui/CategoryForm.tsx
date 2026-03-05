@@ -38,6 +38,7 @@ export default function CategoryForm({
         slug: initialData?.slug ?? '',
         parent_id: initialData?.parent_id ?? null,
         is_active: initialData?.is_active ?? true,
+        display_order: (initialData as any)?.display_order ?? 0,
     });
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string>(initialData?.image_url || '');
@@ -137,11 +138,30 @@ export default function CategoryForm({
                     className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 >
                     <option value="">None (Top-level Category)</option>
-                    {availableParents.map(cat => (
-                        <option key={cat.id} value={cat.id}>{cat.name}</option>
-                    ))}
+                    {availableParents.map(cat => {
+                        const isChild = !!cat.parent_id;
+                        return (
+                            <option key={cat.id} value={cat.id}>
+                                {isChild ? `— ${cat.name}` : cat.name}
+                            </option>
+                        );
+                    })}
                 </select>
                 <p className="text-xs text-gray-500 mt-1">Select a parent to create a subcategory</p>
+            </div>
+
+            {/* Display Order */}
+            <div>
+                <Label htmlFor="display_order">Display Order</Label>
+                <Input
+                    id="display_order"
+                    type="number"
+                    min={0}
+                    value={formData.display_order ?? 0}
+                    onChange={e => setFormData({ ...formData, display_order: parseInt(e.target.value) || 0 })}
+                    placeholder="0"
+                />
+                <p className="text-xs text-gray-500 mt-1">Lower numbers appear first in navigation and homepage</p>
             </div>
 
             {/* Category Image */}

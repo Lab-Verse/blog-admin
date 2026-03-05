@@ -17,6 +17,7 @@ const buildQueryString = (params?: PostsQueryParams): string => {
   if (params.limit !== undefined) searchParams.set('limit', String(params.limit));
   if (params.search) searchParams.set('search', params.search);
   if (params.status) searchParams.set('status', params.status);
+  if (params.post_type) searchParams.set('postType', params.post_type);
   if (params.category_id) searchParams.set('category_id', params.category_id);
 
   const qs = searchParams.toString();

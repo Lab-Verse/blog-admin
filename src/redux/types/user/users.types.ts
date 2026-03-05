@@ -24,6 +24,7 @@ export interface UserProfile {
   posts_count?: number;
   followers_count?: number;
   following_count?: number;
+  is_columnist?: boolean;
   created_at?: string;
   updated_at?: string;
 }
@@ -89,6 +90,7 @@ export interface CreateUserProfileDto {
   website_url?: string;
   company?: string;
   job_title?: string;
+  is_columnist?: boolean;
 }
 
 // Use Partial<CreateUserProfileDto> directly instead of UpdateUserProfileDto
