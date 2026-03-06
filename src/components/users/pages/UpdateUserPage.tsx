@@ -197,9 +197,10 @@ export default function UpdateUserPage({ user, onSubmit, isLoading }: UpdateUser
                                     onChange={handleChange}
                                     className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                                 >
+                                    <option value="author">Author</option>
                                     <option value="user">User</option>
                                     <option value="admin">Admin</option>
-                                    <option value="manager">Manager</option>
+                                    <option value="moderator">Moderator</option>
                                 </select>
                             </div>
 

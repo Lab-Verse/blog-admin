@@ -7,7 +7,7 @@ export enum UserStatus {
   PENDING = 'pending',
 }
 
-export type UserRole = 'admin' | 'user' | 'manager' | string;
+export type UserRole = 'super_admin' | 'admin' | 'author' | 'user' | 'moderator' | string;
 
 export interface UserProfile {
   id: string;

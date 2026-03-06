@@ -60,9 +60,10 @@ export default function UsersPageComponent({
 
   const getRoleBadge = (role: string) => {
     const styles = {
+      super_admin: 'bg-red-500/10 text-red-700 border-red-200 ring-1 ring-red-500/20',
       admin: 'bg-purple-500/10 text-purple-700 border-purple-200 ring-1 ring-purple-500/20',
-      editor: 'bg-blue-500/10 text-blue-700 border-blue-200 ring-1 ring-blue-500/20',
       author: 'bg-emerald-500/10 text-emerald-700 border-emerald-200 ring-1 ring-emerald-500/20',
+      moderator: 'bg-blue-500/10 text-blue-700 border-blue-200 ring-1 ring-blue-500/20',
       user: 'bg-slate-500/10 text-slate-700 border-slate-200 ring-1 ring-slate-500/20',
     };
     return styles[role.toLowerCase() as keyof typeof styles] || styles.user;
