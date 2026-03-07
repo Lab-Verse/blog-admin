@@ -91,6 +91,8 @@ export interface CreatePostRequest {
   tag_ids?: string[];
   media_ids?: string[];
   published_at?: string;
+  /** Admin-only: assign post to a different author */
+  user_id?: string;
 }
 
 /** Body for updating a post (UpdatePostDto extends PartialType<CreatePostDto>) */
