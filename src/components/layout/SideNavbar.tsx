@@ -26,6 +26,7 @@ import {
   Languages,
   BookOpen,
   Crown,
+  Bot,
 } from 'lucide-react';
 
 const navigationSections = [
@@ -56,6 +57,7 @@ const navigationSections = [
       { name: 'Analytics', href: '/analytics', icon: BarChart3, badge: null },
       { name: 'Notifications', href: '/dashboard/notifications', icon: Bell, badge: '8' },
       { name: 'Reports', href: '/reports', icon: TrendingUp, badge: null },
+      { name: 'Agent Logs', href: '/agent-logs', icon: Bot, badge: null },
     ],
   },
   {

@@ -50,6 +50,7 @@ export const baseApi = createApi({
     'TagTranslation',
     'EMagazine',
     'Leadership',
+    'AgentLogs',
   ],
   endpoints: () => ({}),
 });
