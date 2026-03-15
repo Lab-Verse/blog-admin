@@ -1,6 +1,36 @@
 import { baseApi } from '../baseApi';
 
 // Types
+export interface AgentConfig {
+  id: number;
+  enabled: boolean;
+  max_posts_per_session: number;
+  pipeline_interval_minutes: number;
+  stagger_delay_seconds: number;
+  max_article_age_hours: number;
+  max_articles_per_category: number;
+  require_featured_image: boolean;
+  image_strategy: string;
+  image_ai_provider: string;
+  auto_publish: boolean;
+  categories_enabled: string[];
+  updated_at: string;
+}
+
+export interface UpdateAgentConfigPayload {
+  enabled?: boolean;
+  max_posts_per_session?: number;
+  pipeline_interval_minutes?: number;
+  stagger_delay_seconds?: number;
+  max_article_age_hours?: number;
+  max_articles_per_category?: number;
+  require_featured_image?: boolean;
+  image_strategy?: string;
+  image_ai_provider?: string;
+  auto_publish?: boolean;
+  categories_enabled?: string[];
+}
+
 export interface AgentRun {
   id: string;
   started_at: string;
@@ -81,6 +111,18 @@ interface ArticlesQuery {
 
 export const agentLogsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    getAgentConfig: builder.query<AgentConfig, void>({
+      query: () => '/agent-logs/config',
+      providesTags: ['AgentLogs'],
+    }),
+    updateAgentConfig: builder.mutation<AgentConfig, UpdateAgentConfigPayload>({
+      query: (body) => ({
+        url: '/agent-logs/config',
+        method: 'PATCH',
+        body,
+      }),
+      invalidatesTags: ['AgentLogs'],
+    }),
     getAgentStats: builder.query<AgentStats, void>({
       query: () => '/agent-logs/stats',
       providesTags: ['AgentLogs'],
@@ -107,6 +149,8 @@ export const agentLogsApi = baseApi.injectEndpoints({
 });
 
 export const {
+  useGetAgentConfigQuery,
+  useUpdateAgentConfigMutation,
   useGetAgentStatsQuery,
   useGetAgentRunsQuery,
   useGetAgentRunQuery,
