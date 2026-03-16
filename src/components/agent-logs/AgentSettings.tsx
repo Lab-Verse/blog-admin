@@ -67,6 +67,7 @@ export default function AgentSettings() {
         image_ai_provider: config.image_ai_provider,
         auto_publish: config.auto_publish,
         categories_enabled: config.categories_enabled || [],
+        categories_requiring_review: config.categories_requiring_review || [],
       });
     }
   }, [config]);
@@ -334,6 +335,45 @@ export default function AgentSettings() {
                   className={`rounded-lg border px-3 py-2 text-left text-sm transition-colors ${
                     isSelected
                       ? 'border-teal-300 bg-teal-50 font-medium text-teal-700'
+                      : 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Categories Requiring Review (HITL) */}
+        <div className="rounded-xl border bg-white p-5 shadow-sm lg:col-span-2">
+          <div className="mb-4 flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-amber-600" />
+            <h3 className="font-semibold text-gray-900">Human Review Required</h3>
+            <span className="text-xs text-gray-500">
+              ({(form.categories_requiring_review || []).length === 0 ? 'None' : `${(form.categories_requiring_review || []).length} selected`})
+            </span>
+          </div>
+          <p className="mb-3 text-xs text-gray-500">
+            Articles in these categories will be saved as drafts and require manual approval before publishing.
+          </p>
+          <div className="grid grid-cols-3 gap-2 lg:grid-cols-4">
+            {AVAILABLE_CATEGORIES.map((cat) => {
+              const isSelected = (form.categories_requiring_review || []).includes(cat.key);
+              return (
+                <button
+                  key={cat.key}
+                  onClick={() => {
+                    const current = form.categories_requiring_review || [];
+                    if (current.includes(cat.key)) {
+                      updateField('categories_requiring_review', current.filter((c) => c !== cat.key));
+                    } else {
+                      updateField('categories_requiring_review', [...current, cat.key]);
+                    }
+                  }}
+                  className={`rounded-lg border px-3 py-2 text-left text-sm transition-colors ${
+                    isSelected
+                      ? 'border-amber-300 bg-amber-50 font-medium text-amber-700'
                       : 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100'
                   }`}
                 >

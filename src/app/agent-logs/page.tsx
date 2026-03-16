@@ -3,10 +3,16 @@
 import { useState } from 'react';
 import AgentLogsDashboard from '@/components/agent-logs/AgentLogsDashboard';
 import AgentSettings from '@/components/agent-logs/AgentSettings';
-import { BarChart3, Settings } from 'lucide-react';
+import ReviewQueue from '@/components/agent-logs/ReviewQueue';
+import CostDashboard from '@/components/agent-logs/CostDashboard';
+import SocialDashboard from '@/components/agent-logs/SocialDashboard';
+import { BarChart3, Settings, ClipboardCheck, DollarSign, Share2 } from 'lucide-react';
 
 const TABS = [
   { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
+  { id: 'review', label: 'Review Queue', icon: ClipboardCheck },
+  { id: 'social', label: 'Social Media', icon: Share2 },
+  { id: 'costs', label: 'Costs', icon: DollarSign },
   { id: 'settings', label: 'Settings', icon: Settings },
 ] as const;
 
@@ -40,6 +46,9 @@ export default function AgentLogsPage() {
 
       {/* Tab Content */}
       {activeTab === 'dashboard' && <AgentLogsDashboard />}
+      {activeTab === 'review' && <ReviewQueue />}
+      {activeTab === 'social' && <SocialDashboard />}
+      {activeTab === 'costs' && <CostDashboard />}
       {activeTab === 'settings' && <AgentSettings />}
     </div>
   );

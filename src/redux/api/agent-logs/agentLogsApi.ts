@@ -14,6 +14,7 @@ export interface AgentConfig {
   image_ai_provider: string;
   auto_publish: boolean;
   categories_enabled: string[];
+  categories_requiring_review: string[];
   updated_at: string;
 }
 
@@ -29,6 +30,7 @@ export interface UpdateAgentConfigPayload {
   image_ai_provider?: string;
   auto_publish?: boolean;
   categories_enabled?: string[];
+  categories_requiring_review?: string[];
 }
 
 export interface AgentRun {
@@ -62,6 +64,61 @@ export interface AggregatedArticle {
   created_at: string;
   updated_at: string;
   published_at: string | null;
+}
+
+export interface ReviewQueueArticle extends AggregatedArticle {
+  rewritten_content: string | null;
+  seo_metadata: Record<string, unknown> | null;
+  article_status: string;
+  post_title: string | null;
+  post_status: string | null;
+  post_slug: string | null;
+}
+
+export interface CostSummary {
+  period_days: number;
+  totals: {
+    total_runs: string;
+    total_prompt_tokens: string;
+    total_completion_tokens: string;
+    total_tokens: string;
+    total_api_calls: string;
+    total_image_generations: string;
+    total_cost_usd: string;
+  };
+  daily: Array<{
+    date: string;
+    runs: string;
+    cost_usd: string;
+    tokens: string;
+  }>;
+}
+
+export interface SocialMediaPostItem {
+  id: string;
+  article_id: string;
+  blog_post_id: string | null;
+  platform: 'twitter' | 'linkedin' | 'facebook';
+  status: 'pending' | 'posted' | 'failed' | 'skipped';
+  post_text: string | null;
+  post_url: string | null;
+  platform_post_id: string | null;
+  error_message: string | null;
+  created_at: string;
+  posted_at: string | null;
+  source_title: string | null;
+}
+
+export interface SocialStats {
+  byPlatform: Array<{ platform: string; status: string; count: string }>;
+  recent: SocialMediaPostItem[];
+}
+
+interface SocialPostsQuery {
+  page?: number;
+  limit?: number;
+  platform?: string;
+  status?: string;
 }
 
 export interface AgentStats {
@@ -145,6 +202,46 @@ export const agentLogsApi = baseApi.injectEndpoints({
       }),
       providesTags: ['AgentLogs'],
     }),
+    getReviewQueue: builder.query<PaginatedResponse<ReviewQueueArticle>, ArticlesQuery>({
+      query: (params) => ({
+        url: '/agent-logs/review-queue',
+        params,
+      }),
+      providesTags: ['AgentLogs'],
+    }),
+    approveArticle: builder.mutation<{ success: boolean; articleId: string }, string>({
+      query: (id) => ({
+        url: `/agent-logs/articles/${id}/approve`,
+        method: 'POST',
+      }),
+      invalidatesTags: ['AgentLogs'],
+    }),
+    rejectArticle: builder.mutation<{ success: boolean; articleId: string }, { id: string; reason?: string }>({
+      query: ({ id, reason }) => ({
+        url: `/agent-logs/articles/${id}/reject`,
+        method: 'POST',
+        body: { reason },
+      }),
+      invalidatesTags: ['AgentLogs'],
+    }),
+    getCostSummary: builder.query<CostSummary, number | void>({
+      query: (days) => ({
+        url: '/agent-logs/cost-summary',
+        params: { days: days || 7 },
+      }),
+      providesTags: ['AgentLogs'],
+    }),
+    getSocialPosts: builder.query<PaginatedResponse<SocialMediaPostItem>, SocialPostsQuery>({
+      query: (params) => ({
+        url: '/agent-logs/social-posts',
+        params,
+      }),
+      providesTags: ['AgentLogs'],
+    }),
+    getSocialStats: builder.query<SocialStats, void>({
+      query: () => '/agent-logs/social-stats',
+      providesTags: ['AgentLogs'],
+    }),
   }),
 });
 
@@ -155,4 +252,10 @@ export const {
   useGetAgentRunsQuery,
   useGetAgentRunQuery,
   useGetAgentArticlesQuery,
+  useGetReviewQueueQuery,
+  useApproveArticleMutation,
+  useRejectArticleMutation,
+  useGetCostSummaryQuery,
+  useGetSocialPostsQuery,
+  useGetSocialStatsQuery,
 } = agentLogsApi;
