@@ -81,7 +81,7 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = () => {
 
     const isLoading = statsLoading || trafficLoading;
 
-    // Use mock data as fallback
+    // Build analytics data from API responses, with zero-defaults for missing fields
     const analyticsData = {
         overview: statsData?.overview || {
             totalUsers: 0,

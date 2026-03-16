@@ -21,70 +21,6 @@ interface BookmarksPageProps {
     userId: string;
 }
 
-// Mock data for fallback
-const MOCK_BOOKMARKS: Bookmark[] = [
-    {
-        id: '1',
-        user_id: 'user-1',
-        post_id: 'post-1',
-        created_at: new Date().toISOString(),
-        post: {
-            id: 'post-1',
-            title: 'The Future of React Server Components',
-            excerpt: 'Exploring the benefits and trade-offs of RSC in modern web development.',
-            cover_image_url: 'https://picsum.photos/seed/react/800/400'
-        }
-    },
-    {
-        id: '2',
-        user_id: 'user-1',
-        post_id: 'post-2',
-        created_at: new Date(Date.now() - 86400000).toISOString(),
-        post: {
-            id: 'post-2',
-            title: 'Mastering TypeScript Generics',
-            excerpt: 'A deep dive into advanced TypeScript generic patterns.',
-            cover_image_url: 'https://picsum.photos/seed/ts/800/400'
-        }
-    },
-    {
-        id: '3',
-        user_id: 'user-1',
-        post_id: 'post-3',
-        created_at: new Date(Date.now() - 172800000).toISOString(),
-        post: {
-            id: 'post-3',
-            title: 'Tailwind CSS Best Practices',
-            excerpt: 'How to organize and scale your Tailwind CSS projects.',
-            cover_image_url: 'https://picsum.photos/seed/tailwind/800/400'
-        }
-    },
-    {
-        id: '4',
-        user_id: 'user-1',
-        post_id: 'post-4',
-        created_at: new Date(Date.now() - 604800000).toISOString(),
-        post: {
-            id: 'post-4',
-            title: 'Next.js 14 Routing Guide',
-            excerpt: 'Understanding the App Router and new routing paradigms.',
-            cover_image_url: 'https://picsum.photos/seed/next/800/400'
-        }
-    },
-    {
-        id: '5',
-        user_id: 'user-1',
-        post_id: 'post-5',
-        created_at: new Date(Date.now() - 1209600000).toISOString(),
-        post: {
-            id: 'post-5',
-            title: 'Web Accessibility Checklist',
-            excerpt: 'Ensure your website is accessible to everyone.',
-            cover_image_url: 'https://picsum.photos/seed/a11y/800/400'
-        }
-    }
-];
-
 export const BookmarksPage: React.FC<BookmarksPageProps> = ({ userId }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [sortOrder, setSortOrder] = useState<'recent' | 'oldest'>('recent');
@@ -97,9 +33,7 @@ export const BookmarksPage: React.FC<BookmarksPageProps> = ({ userId }) => {
     const error = useSelector(selectBookmarksError);
     const [deleteBookmark, { isLoading: isDeleting }] = useDeleteBookmarkMutation();
 
-    // Use mock data if there's an error or no data
-    const bookmarks = error ? MOCK_BOOKMARKS : rawBookmarks;
-    const isDemoMode = !!error;
+    const bookmarks = rawBookmarks;
 
     const filteredAndSortedBookmarks = useMemo(() => {
         let result = [...bookmarks];
@@ -123,10 +57,6 @@ export const BookmarksPage: React.FC<BookmarksPageProps> = ({ userId }) => {
     }, [bookmarks, searchQuery, sortOrder]);
 
     const handleDelete = async (id: string) => {
-        if (isDemoMode) {
-            alert('Delete functionality is disabled in demo mode.');
-            return;
-        }
         try {
             await deleteBookmark(id).unwrap();
         } catch (err) {
@@ -172,12 +102,12 @@ export const BookmarksPage: React.FC<BookmarksPageProps> = ({ userId }) => {
 
     return (
         <div className="p-6 space-y-6">
-            {/* Demo Mode Alert */}
-            {isDemoMode && (
-                <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg flex items-center gap-2 mb-4">
+            {/* Error Alert */}
+            {error && (
+                <div className="bg-danger-50 border border-danger-200 text-danger-700 px-4 py-3 rounded-lg flex items-center gap-2 mb-4">
                     <Info className="w-5 h-5" />
                     <p className="text-sm font-medium">
-                        Showing demo data because the backend is unreachable.
+                        Failed to load bookmarks. Please try again later.
                     </p>
                 </div>
             )}

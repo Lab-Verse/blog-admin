@@ -79,8 +79,10 @@ export default function AppShell({ children }: AppShellProps) {
       <SideNavbar />
       <div className="flex-1 flex flex-col overflow-hidden lg:ml-72">
         <Navbar toggleSidebar={toggleSidebar} />
-        <main className="flex-1 overflow-y-auto">
-          {children}
+        <main className="flex-1 overflow-y-auto scrollbar-thin">
+          <div className="p-4 sm:p-6">
+            {children}
+          </div>
         </main>
       </div>
     </div>
