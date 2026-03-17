@@ -1,11 +1,14 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   useGetAgentConfigQuery,
   useUpdateAgentConfigMutation,
+  useLazyValidatePublisherQuery,
   type AgentConfig,
 } from '@/redux/api/agent-logs/agentLogsApi';
+import { useGetUsersQuery } from '@/redux/api/user/usersApi';
+import { useGetCategoriesQuery } from '@/redux/api/category/categoriesApi';
 import {
   Settings,
   Save,
@@ -17,6 +20,11 @@ import {
   AlertTriangle,
   CheckCircle2,
   Loader2,
+  UserCog,
+  Search,
+  X,
+  ShieldCheck,
+  FolderCheck,
 } from 'lucide-react';
 
 const IMAGE_STRATEGIES = [
@@ -49,9 +57,39 @@ const AVAILABLE_CATEGORIES = [
 export default function AgentSettings() {
   const { data: config, isLoading, refetch } = useGetAgentConfigQuery();
   const [updateConfig, { isLoading: isSaving }] = useUpdateAgentConfigMutation();
+  const [validatePublisher] = useLazyValidatePublisherQuery();
+
+  // Fetch admin users for the publisher selector
+  const { data: usersData } = useGetUsersQuery({ limit: 100, role: 'admin' });
+  const { data: superAdminData } = useGetUsersQuery({ limit: 100, role: 'super_admin' });
+  const adminUsers = [
+    ...(usersData?.items || []),
+    ...(superAdminData?.items || []),
+  ];
+
+  // Fetch all categories from the API
+  const { data: categoriesData } = useGetCategoriesQuery({ limit: 200 });
+  const allCategories = categoriesData?.items || [];
 
   const [form, setForm] = useState<Partial<AgentConfig>>({});
   const [saved, setSaved] = useState(false);
+
+  // Publisher search state
+  const [publisherSearch, setPublisherSearch] = useState('');
+  const [publisherDropdownOpen, setPublisherDropdownOpen] = useState(false);
+  const [publisherValidation, setPublisherValidation] = useState<{ valid?: boolean; error?: string } | null>(null);
+  const publisherRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (publisherRef.current && !publisherRef.current.contains(e.target as Node)) {
+        setPublisherDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (config) {
@@ -68,14 +106,25 @@ export default function AgentSettings() {
         auto_publish: config.auto_publish,
         categories_enabled: config.categories_enabled || [],
         categories_requiring_review: config.categories_requiring_review || [],
+        publisher_admin_id: config.publisher_admin_id,
+        allowed_categories: config.allowed_categories || [],
       });
     }
   }, [config]);
 
   const handleSave = async () => {
     try {
+      // Validate publisher if set
+      if (form.publisher_admin_id) {
+        const result = await validatePublisher(form.publisher_admin_id).unwrap();
+        if (!result.valid) {
+          setPublisherValidation({ valid: false, error: result.error });
+          return;
+        }
+      }
       await updateConfig(form).unwrap();
       setSaved(true);
+      setPublisherValidation(null);
       setTimeout(() => setSaved(false), 3000);
       refetch();
     } catch (err) {
@@ -95,6 +144,26 @@ export default function AgentSettings() {
       updateField('categories_enabled', [...current, key]);
     }
   };
+
+  const toggleAllowedCategory = useCallback((categoryId: string) => {
+    const current = form.allowed_categories || [];
+    if (current.includes(categoryId)) {
+      updateField('allowed_categories', current.filter((c) => c !== categoryId));
+    } else {
+      updateField('allowed_categories', [...current, categoryId]);
+    }
+  }, [form.allowed_categories]);
+
+  const selectedPublisher = adminUsers.find((u) => u.id === form.publisher_admin_id);
+  const filteredAdmins = adminUsers.filter((u) => {
+    if (!publisherSearch) return true;
+    const q = publisherSearch.toLowerCase();
+    return (
+      u.username.toLowerCase().includes(q) ||
+      u.email.toLowerCase().includes(q) ||
+      (u.display_name || '').toLowerCase().includes(q)
+    );
+  });
 
   if (isLoading) {
     return (
@@ -153,6 +222,104 @@ export default function AgentSettings() {
           >
             <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${form.enabled ? 'translate-x-8' : 'translate-x-1'}`} />
           </button>
+        </div>
+      </div>
+
+      {/* Publisher Configuration */}
+      <div className="rounded-xl border-2 border-indigo-200 bg-indigo-50/30 p-5">
+        <div className="mb-4 flex items-center gap-2">
+          <UserCog className="h-5 w-5 text-indigo-600" />
+          <h3 className="font-semibold text-gray-900">Publisher Configuration</h3>
+        </div>
+        <p className="mb-4 text-xs text-gray-500">
+          Select which admin account the AI agent will use as the post author. The agent will publish all content under this identity.
+        </p>
+
+        {/* Admin Selector Combobox */}
+        <div ref={publisherRef} className="relative">
+          <label className="mb-1 block text-sm font-medium text-gray-700">
+            Master Publisher Admin
+          </label>
+          {selectedPublisher ? (
+            <div className="flex items-center justify-between rounded-lg border border-indigo-300 bg-white px-3 py-2">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-indigo-600" />
+                <div>
+                  <span className="text-sm font-medium text-gray-900">
+                    {selectedPublisher.display_name || selectedPublisher.username}
+                  </span>
+                  <span className="ml-2 text-xs text-gray-500">{selectedPublisher.email}</span>
+                  <span className="ml-2 inline-flex rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">
+                    {selectedPublisher.role}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  updateField('publisher_admin_id', null);
+                  setPublisherValidation(null);
+                }}
+                className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          ) : (
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search admin users by name or email..."
+                value={publisherSearch}
+                onChange={(e) => {
+                  setPublisherSearch(e.target.value);
+                  setPublisherDropdownOpen(true);
+                }}
+                onFocus={() => setPublisherDropdownOpen(true)}
+                className="w-full rounded-lg border border-gray-300 py-2 pl-9 pr-3 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              />
+            </div>
+          )}
+
+          {/* Dropdown */}
+          {publisherDropdownOpen && !selectedPublisher && (
+            <div className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg border bg-white shadow-lg">
+              {filteredAdmins.length === 0 ? (
+                <div className="px-4 py-3 text-sm text-gray-500">No admin users found</div>
+              ) : (
+                filteredAdmins.map((user) => (
+                  <button
+                    key={user.id}
+                    onClick={() => {
+                      updateField('publisher_admin_id', user.id);
+                      setPublisherSearch('');
+                      setPublisherDropdownOpen(false);
+                      setPublisherValidation(null);
+                    }}
+                    className="flex w-full items-center gap-3 px-4 py-2 text-left hover:bg-indigo-50"
+                  >
+                    <ShieldCheck className="h-4 w-4 shrink-0 text-indigo-500" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-gray-900">
+                        {user.display_name || user.username}
+                      </p>
+                      <p className="truncate text-xs text-gray-500">{user.email}</p>
+                    </div>
+                    <span className="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
+                      {user.role}
+                    </span>
+                  </button>
+                ))
+              )}
+            </div>
+          )}
+
+          {publisherValidation && !publisherValidation.valid && (
+            <p className="mt-1 text-xs text-red-600">{publisherValidation.error}</p>
+          )}
+          <p className="mt-1 text-xs text-gray-500">
+            If not set, posts will be authored by the agent&apos;s login account.
+          </p>
         </div>
       </div>
 
@@ -313,17 +480,17 @@ export default function AgentSettings() {
           </div>
         </div>
 
-        {/* Categories */}
+        {/* Pipeline Categories (internal keys) */}
         <div className="rounded-xl border bg-white p-5 shadow-sm">
           <div className="mb-4 flex items-center gap-2">
             <Layers className="h-5 w-5 text-teal-600" />
-            <h3 className="font-semibold text-gray-900">Categories</h3>
+            <h3 className="font-semibold text-gray-900">Pipeline Categories</h3>
             <span className="text-xs text-gray-500">
               ({(form.categories_enabled || []).length === 0 ? 'All enabled' : `${(form.categories_enabled || []).length} selected`})
             </span>
           </div>
           <p className="mb-3 text-xs text-gray-500">
-            Leave empty to process all categories. Select specific ones to limit.
+            Leave empty to process all categories. Select specific ones to limit the pipeline&apos;s news sources.
           </p>
           <div className="grid grid-cols-2 gap-2">
             {AVAILABLE_CATEGORIES.map((cat) => {
@@ -342,6 +509,43 @@ export default function AgentSettings() {
                 </button>
               );
             })}
+          </div>
+        </div>
+
+        {/* Allowed Categories (blog-api UUIDs) */}
+        <div className="rounded-xl border bg-white p-5 shadow-sm lg:col-span-2">
+          <div className="mb-4 flex items-center gap-2">
+            <FolderCheck className="h-5 w-5 text-emerald-600" />
+            <h3 className="font-semibold text-gray-900">Allowed Publishing Categories</h3>
+            <span className="text-xs text-gray-500">
+              ({(form.allowed_categories || []).length === 0 ? 'All allowed' : `${(form.allowed_categories || []).length} selected`})
+            </span>
+          </div>
+          <p className="mb-3 text-xs text-gray-500">
+            Restrict which blog categories the agent can publish into. Leave empty to allow all categories.
+            These are the actual blog categories (not pipeline source categories).
+          </p>
+          <div className="grid grid-cols-3 gap-2 lg:grid-cols-4">
+            {allCategories.length === 0 ? (
+              <p className="col-span-full text-sm text-gray-400">Loading categories...</p>
+            ) : (
+              allCategories.map((cat) => {
+                const isSelected = (form.allowed_categories || []).includes(cat.id);
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => toggleAllowedCategory(cat.id)}
+                    className={`rounded-lg border px-3 py-2 text-left text-sm transition-colors ${
+                      isSelected
+                        ? 'border-emerald-300 bg-emerald-50 font-medium text-emerald-700'
+                        : 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100'
+                    }`}
+                  >
+                    {cat.name}
+                  </button>
+                );
+              })
+            )}
           </div>
         </div>
 

@@ -15,6 +15,8 @@ export interface AgentConfig {
   auto_publish: boolean;
   categories_enabled: string[];
   categories_requiring_review: string[];
+  publisher_admin_id: string | null;
+  allowed_categories: string[];
   updated_at: string;
 }
 
@@ -31,6 +33,8 @@ export interface UpdateAgentConfigPayload {
   auto_publish?: boolean;
   categories_enabled?: string[];
   categories_requiring_review?: string[];
+  publisher_admin_id?: string | null;
+  allowed_categories?: string[];
 }
 
 export interface AgentRun {
@@ -242,6 +246,12 @@ export const agentLogsApi = baseApi.injectEndpoints({
       query: () => '/agent-logs/social-stats',
       providesTags: ['AgentLogs'],
     }),
+    validatePublisher: builder.query<
+      { valid: boolean; error?: string; user?: { id: string; username: string; email: string; display_name: string | null; role: string } },
+      string
+    >({
+      query: (userId) => `/agent-logs/validate-publisher/${userId}`,
+    }),
   }),
 });
 
@@ -258,4 +268,5 @@ export const {
   useGetCostSummaryQuery,
   useGetSocialPostsQuery,
   useGetSocialStatsQuery,
+  useLazyValidatePublisherQuery,
 } = agentLogsApi;
