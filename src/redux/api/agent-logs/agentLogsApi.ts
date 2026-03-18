@@ -61,6 +61,44 @@ export interface AgentRun {
   categories_processed: Record<string, { fetched: number; rewritten: number; published: number; failed: number }> | null;
   error_log: string | null;
   duration_seconds: number | null;
+  cost_summary?: {
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    total_tokens?: number;
+    api_calls?: number;
+    image_generations?: number;
+    estimated_cost_usd?: number;
+    seo_report?: SEORunReport;
+  } | null;
+}
+
+export interface SEORunReport {
+  source_urls: string[];
+  seo_summary: {
+    total_internal_links_added: number;
+    total_external_links_added: number;
+    avg_keyword_density_pct: number;
+    category_routing: {
+      successes: number;
+      failures: number;
+    };
+  };
+  articles: SEOArticleReport[];
+  errors: string[];
+}
+
+export interface SEOArticleReport {
+  article_id: string;
+  source_urls: string[];
+  internal_links: Array<{ anchor: string; url: string; name: string }>;
+  external_links: Array<{ anchor: string; url: string; name: string }>;
+  category_target: string;
+  category_status: string;
+  category_fallback: string;
+  keyword_density_pct: number;
+  primary_keyword: string;
+  word_count: number;
+  readability_grade: string;
 }
 
 export interface AggregatedArticle {

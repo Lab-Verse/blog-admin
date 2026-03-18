@@ -7,10 +7,12 @@ import ReviewQueue from '@/components/agent-logs/ReviewQueue';
 import CostDashboard from '@/components/agent-logs/CostDashboard';
 import SocialDashboard from '@/components/agent-logs/SocialDashboard';
 import FeedSourcesManager from '@/components/agent-logs/FeedSourcesManager';
-import { BarChart3, Settings, ClipboardCheck, DollarSign, Share2, Rss } from 'lucide-react';
+import SEOReportDashboard from '@/components/agent-logs/SEOReportDashboard';
+import { BarChart3, Settings, ClipboardCheck, DollarSign, Share2, Rss, Search } from 'lucide-react';
 
 const TABS = [
   { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
+  { id: 'seo', label: 'SEO Reports', icon: Search },
   { id: 'feeds', label: 'Feed Sources', icon: Rss },
   { id: 'review', label: 'Review Queue', icon: ClipboardCheck },
   { id: 'social', label: 'Social Media', icon: Share2 },
@@ -48,6 +50,7 @@ export default function AgentLogsPage() {
 
       {/* Tab Content */}
       {activeTab === 'dashboard' && <AgentLogsDashboard />}
+      {activeTab === 'seo' && <SEOReportDashboard />}
       {activeTab === 'feeds' && <FeedSourcesManager />}
       {activeTab === 'review' && <ReviewQueue />}
       {activeTab === 'social' && <SocialDashboard />}
