@@ -17,7 +17,16 @@ export interface AgentConfig {
   categories_requiring_review: string[];
   publisher_admin_id: string | null;
   allowed_categories: string[];
+  feed_sources: FeedSource[];
   updated_at: string;
+}
+
+export interface FeedSource {
+  category_key: string;
+  feed_url: string;
+  feed_type: 'rss' | 'newsapi_keywords';
+  label?: string;
+  is_active?: boolean;
 }
 
 export interface UpdateAgentConfigPayload {
@@ -35,6 +44,7 @@ export interface UpdateAgentConfigPayload {
   categories_requiring_review?: string[];
   publisher_admin_id?: string | null;
   allowed_categories?: string[];
+  feed_sources?: FeedSource[];
 }
 
 export interface AgentRun {
