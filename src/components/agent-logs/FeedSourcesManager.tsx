@@ -44,6 +44,11 @@ const EMPTY_FEED: FeedSource = {
 };
 
 export default function FeedSourcesManager() {
+    // ---
+    // ADMIN NOTE: To make RSS feeds global for all categories, add each desired feed for every category in the list below.
+    // You can use the UI to add the same feed URL to each category, or script it via the backend if you have many feeds.
+    // The backend will merge all feeds for each category, so every category will use all the provided feeds.
+    // ---
   const { data: config, isLoading, refetch } = useGetAgentConfigQuery();
   const [updateConfig, { isLoading: isSaving }] = useUpdateAgentConfigMutation();
 
