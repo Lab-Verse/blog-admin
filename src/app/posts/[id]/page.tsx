@@ -511,9 +511,18 @@ export default function SinglePostPage() {
           Back to Posts
         </Button>
         <div className="flex gap-2">
+          <Link
+            href={`https://twa.com.pk/en/post/${post.slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground cursor-pointer"
+          >
+            <Eye className="w-4 h-4" />
+            View on Site
+          </Link>
           <Button variant="outline" onClick={() => router.push(`/posts/${post.id}/edit`)} className="cursor-pointer">
             <Edit className="w-4 h-4 mr-2" />
-            Edit
+            Edit News
           </Button>
           <Button variant="outline" className="text-red-600 hover:text-red-700 cursor-pointer">
             <Trash2 className="w-4 h-4 mr-2" />

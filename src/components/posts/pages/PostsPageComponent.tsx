@@ -4,8 +4,9 @@ import { useState } from 'react';
 import { Post, PostStatus } from '@/redux/types/post/posts.types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, Plus, Check, X } from 'lucide-react';
+import { Search, Plus, Check, X, Eye } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 interface PostsPageComponentProps {
   posts: Post[];
@@ -367,6 +368,15 @@ export default function PostsPageComponent({
                             </>
                           ) : (
                             <>
+                              <Link
+                                href={`https://twa.com.pk/en/post/${post.slug}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 h-8"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                                View
+                              </Link>
                               <Button
                                 onClick={() => onEdit(post)}
                                 variant="ghost"

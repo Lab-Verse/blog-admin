@@ -6,6 +6,7 @@ import {
   useUpdateAgentConfigMutation,
   useLazyValidatePublisherQuery,
   type AgentConfig,
+  type CategoryTier,
 } from '@/redux/api/agent-logs/agentLogsApi';
 import { useGetUsersQuery } from '@/redux/api/user/usersApi';
 import { useGetCategoriesQuery } from '@/redux/api/category/categoriesApi';
@@ -25,6 +26,7 @@ import {
   X,
   ShieldCheck,
   FolderCheck,
+  Timer,
 } from 'lucide-react';
 
 const IMAGE_STRATEGIES = [
@@ -99,6 +101,30 @@ const AVAILABLE_CATEGORIES = [
   { key: 'bulgarian-embassy', label: 'Bulgarian Embassy' },
 ];
 
+const DEFAULT_TIERS: Record<string, CategoryTier> = {
+  tier_1: {
+    max_articles: 2,
+    interval_hours: 12,
+    categories: [
+      'pakistan', 'tourism', 'world', 'business', 'sports',
+      'technology', 'science-tech', 'korea', 'south-korea',
+      'uk', 'united-kingdom', 'women',
+    ],
+  },
+  tier_2: {
+    max_articles: 1,
+    interval_hours: 24,
+    categories: [
+      'embassy-cons', 'iran-embassy', 'malaysia-embassy',
+      'usa-embassy', 'uk-embassy', 'indonesia-embassy',
+      'australia-embassy', 'france-embassy', 'spain-embassy',
+      'sweden-embassy', 'italy-embassy', 'china-embassy',
+      'korea-embassy', 'russia-embassy', 'saudi-embassy',
+      'turkey-embassy', 'romania-embassy', 'bulgarian-embassy',
+    ],
+  },
+};
+
 export default function AgentSettings() {
   const { data: config, isLoading, refetch } = useGetAgentConfigQuery();
   const [updateConfig, { isLoading: isSaving }] = useUpdateAgentConfigMutation();
@@ -118,6 +144,7 @@ export default function AgentSettings() {
 
   const [form, setForm] = useState<Partial<AgentConfig>>({});
   const [saved, setSaved] = useState(false);
+  const [tiersForm, setTiersForm] = useState<Record<string, CategoryTier>>(DEFAULT_TIERS);
 
   // Publisher search state
   const [publisherSearch, setPublisherSearch] = useState('');
@@ -154,6 +181,7 @@ export default function AgentSettings() {
         publisher_admin_id: config.publisher_admin_id,
         allowed_categories: config.allowed_categories || [],
       });
+      setTiersForm(config.category_tiers || DEFAULT_TIERS);
     }
   }, [config]);
 
@@ -167,7 +195,7 @@ export default function AgentSettings() {
           return;
         }
       }
-      await updateConfig(form).unwrap();
+      await updateConfig({ ...form, category_tiers: tiersForm }).unwrap();
       setSaved(true);
       setPublisherValidation(null);
       setTimeout(() => setSaved(false), 3000);
@@ -522,6 +550,72 @@ export default function AgentSettings() {
               </select>
               <p className="mt-1 text-xs text-gray-500">Only used when strategy includes AI generation</p>
             </div>
+          </div>
+        </div>
+
+        {/* Pipeline Categories (internal keys) */}
+        <div className="rounded-xl border bg-white p-5 shadow-sm lg:col-span-2">
+          <div className="mb-4 flex items-center gap-2">
+            <Timer className="h-5 w-5 text-violet-600" />
+            <h3 className="font-semibold text-gray-900">Category Tiers (Scheduling)</h3>
+          </div>
+          <p className="mb-4 text-xs text-gray-500">
+            Tier 1 categories are updated more frequently (e.g. 2 posts every 12h). Tier 2 categories update less often (e.g. 1 post every 24h). Untiered categories use the global &quot;Max Articles Per Category&quot; setting with no cooldown.
+          </p>
+          <div className="space-y-5">
+            {Object.entries(tiersForm).map(([tierKey, tier]) => {
+              const label = tierKey === 'tier_1' ? 'Tier 1 — High Priority' : tierKey === 'tier_2' ? 'Tier 2 — Embassy & Consulate' : tierKey;
+              const color = tierKey === 'tier_1' ? 'violet' : 'amber';
+              return (
+                <div key={tierKey} className={`rounded-lg border-2 border-${color}-200 bg-${color}-50/30 p-4`}>
+                  <h4 className={`mb-2 text-sm font-semibold text-${color}-700`}>{label}</h4>
+                  <div className="mb-3 flex items-center gap-4">
+                    <div className="flex-1">
+                      <label className="mb-1 block text-xs font-medium text-gray-600">Max Articles</label>
+                      <input
+                        type="number"
+                        min={1}
+                        max={10}
+                        value={tier.max_articles}
+                        onChange={(e) => setTiersForm((prev) => ({
+                          ...prev,
+                          [tierKey]: { ...prev[tierKey], max_articles: parseInt(e.target.value) || 1 },
+                        }))}
+                        className="w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="mb-1 block text-xs font-medium text-gray-600">Interval (hours)</label>
+                      <input
+                        type="number"
+                        min={1}
+                        max={168}
+                        value={tier.interval_hours}
+                        onChange={(e) => setTiersForm((prev) => ({
+                          ...prev,
+                          [tierKey]: { ...prev[tierKey], interval_hours: parseInt(e.target.value) || 12 },
+                        }))}
+                        className="w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      />
+                    </div>
+                  </div>
+                  <p className="mb-2 text-xs text-gray-500">Categories in this tier:</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(tier.categories || []).map((catKey) => {
+                      const catLabel = AVAILABLE_CATEGORIES.find((c) => c.key === catKey)?.label || catKey;
+                      return (
+                        <span
+                          key={catKey}
+                          className={`inline-flex items-center rounded-full border border-${color}-300 bg-${color}-100 px-2.5 py-0.5 text-xs font-medium text-${color}-800`}
+                        >
+                          {catLabel}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 

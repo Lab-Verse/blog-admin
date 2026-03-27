@@ -18,7 +18,14 @@ export interface AgentConfig {
   publisher_admin_id: string | null;
   allowed_categories: string[];
   feed_sources: FeedSource[];
+  category_tiers: Record<string, CategoryTier> | null;
   updated_at: string;
+}
+
+export interface CategoryTier {
+  max_articles: number;
+  interval_hours: number;
+  categories: string[];
 }
 
 export interface FeedSource {
@@ -45,6 +52,7 @@ export interface UpdateAgentConfigPayload {
   publisher_admin_id?: string | null;
   allowed_categories?: string[];
   feed_sources?: FeedSource[];
+  category_tiers?: Record<string, CategoryTier> | null;
 }
 
 export interface AgentRun {
