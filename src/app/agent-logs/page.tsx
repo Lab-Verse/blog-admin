@@ -6,9 +6,10 @@ import AgentSettings from '@/components/agent-logs/AgentSettings';
 import ReviewQueue from '@/components/agent-logs/ReviewQueue';
 import CostDashboard from '@/components/agent-logs/CostDashboard';
 import SocialDashboard from '@/components/agent-logs/SocialDashboard';
+import SocialLinksManager from '@/components/agent-logs/SocialLinksManager';
 import FeedSourcesManager from '@/components/agent-logs/FeedSourcesManager';
 import SEOReportDashboard from '@/components/agent-logs/SEOReportDashboard';
-import { BarChart3, Settings, ClipboardCheck, DollarSign, Share2, Rss, Search } from 'lucide-react';
+import { BarChart3, Settings, ClipboardCheck, DollarSign, Share2, Rss, Search, Link2 } from 'lucide-react';
 
 const TABS = [
   { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
@@ -16,6 +17,7 @@ const TABS = [
   { id: 'feeds', label: 'Feed Sources', icon: Rss },
   { id: 'review', label: 'Review Queue', icon: ClipboardCheck },
   { id: 'social', label: 'Social Media', icon: Share2 },
+  { id: 'social-links', label: 'Social Links', icon: Link2 },
   { id: 'costs', label: 'Costs', icon: DollarSign },
   { id: 'settings', label: 'Settings', icon: Settings },
 ] as const;
@@ -54,6 +56,7 @@ export default function AgentLogsPage() {
       {activeTab === 'feeds' && <FeedSourcesManager />}
       {activeTab === 'review' && <ReviewQueue />}
       {activeTab === 'social' && <SocialDashboard />}
+      {activeTab === 'social-links' && <SocialLinksManager />}
       {activeTab === 'costs' && <CostDashboard />}
       {activeTab === 'settings' && <AgentSettings />}
     </div>

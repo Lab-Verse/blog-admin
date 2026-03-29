@@ -1,6 +1,20 @@
 import { baseApi } from '../baseApi';
 
 // Types
+export interface SocialLink {
+  platform: string;
+  label: string;
+  url: string;
+  enabled: boolean;
+}
+
+export interface PlatformConfig {
+  platform: string;
+  label: string;
+  enabled: boolean;
+  auto_post: boolean;
+}
+
 export interface AgentConfig {
   id: number;
   enabled: boolean;
@@ -19,6 +33,8 @@ export interface AgentConfig {
   allowed_categories: string[];
   feed_sources: FeedSource[];
   category_tiers: Record<string, CategoryTier> | null;
+  social_links: SocialLink[];
+  platform_config: PlatformConfig[];
   updated_at: string;
 }
 
@@ -53,6 +69,8 @@ export interface UpdateAgentConfigPayload {
   allowed_categories?: string[];
   feed_sources?: FeedSource[];
   category_tiers?: Record<string, CategoryTier> | null;
+  social_links?: SocialLink[];
+  platform_config?: PlatformConfig[];
 }
 
 export interface AgentRun {
