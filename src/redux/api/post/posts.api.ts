@@ -18,7 +18,14 @@ const buildQueryString = (params?: PostsQueryParams): string => {
   if (params.search) searchParams.set('search', params.search);
   if (params.status) searchParams.set('status', params.status);
   if (params.post_type) searchParams.set('postType', params.post_type);
-  if (params.category_id) searchParams.set('category_id', params.category_id);
+  if (params.category_id) searchParams.set('category', params.category_id);
+  if (params.tag) searchParams.set('tag', params.tag);
+  if (params.user) searchParams.set('user', params.user);
+  if (params.author) searchParams.set('author', params.author);
+  if (params.sortBy) searchParams.set('sortBy', params.sortBy);
+  if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
+  if (params.dateFrom) searchParams.set('dateFrom', params.dateFrom);
+  if (params.dateTo) searchParams.set('dateTo', params.dateTo);
 
   const qs = searchParams.toString();
   return qs ? `?${qs}` : '';

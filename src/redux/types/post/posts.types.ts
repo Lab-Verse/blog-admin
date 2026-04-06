@@ -75,6 +75,13 @@ export interface PostsQueryParams {
   status?: PostStatus;
   post_type?: PostType;
   category_id?: string;
+  tag?: string;
+  user?: string;
+  author?: string;
+  sortBy?: string;
+  sortOrder?: 'ASC' | 'DESC';
+  dateFrom?: string;
+  dateTo?: string;
 }
 
 /** Body for creating a post (CreatePostDto – adjust to match backend) */
