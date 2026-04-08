@@ -39,6 +39,8 @@ export interface User {
   role_id?: string;
   status: UserStatus;
   can_publish?: boolean;
+  phone?: string;
+  cv_url?: string;
   profile?: UserProfile | null;
   created_at?: string;
   updated_at?: string;
