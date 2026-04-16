@@ -32,6 +32,7 @@ export interface Post {
   user_id: string;
 
   featured_image?: string;
+  video_url?: string;
   published_at?: string; // ISO date string
 
   created_at: string;

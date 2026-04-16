@@ -55,7 +55,7 @@ const navigationSections: NavSection[] = [
       { name: 'Tags', href: '/tags', icon: Tag },
       { name: 'Translations', href: '/translations', icon: Languages },
       { name: 'E-Magazine', href: '/e-magazine', icon: BookOpen },
-      { name: 'Leadership', href: '/leadership', icon: Crown },
+      { name: 'Team', href: '/leadership', icon: Crown },
     ],
   },
   {

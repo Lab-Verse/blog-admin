@@ -314,6 +314,7 @@ export default function AdminPostEditor({ editPostId }: AdminPostEditorProps) {
   const [selectedCategories, setSelectedCategories] = React.useState<{ id: string; name: string }[]>([])
   const [categoryQuery, setCategoryQuery] = React.useState('')
   const [postType, setPostType] = React.useState<string>('standard')
+  const [videoUrl, setVideoUrl] = React.useState('')
   const [excerpt, setExcerpt] = React.useState('')
   const [editPopulated, setEditPopulated] = React.useState(false)
 
@@ -466,6 +467,7 @@ export default function AdminPostEditor({ editPostId }: AdminPostEditorProps) {
     }
     if (existingPost.excerpt) setExcerpt(existingPost.excerpt)
     if (existingPost.post_type) setPostType(existingPost.post_type)
+    if (existingPost.video_url) setVideoUrl(existingPost.video_url)
     if (existingPost.published_at) setPublishedAt(new Date(existingPost.published_at))
     if (existingPost.user_id) setAssignedUserId(existingPost.user_id)
 
@@ -583,6 +585,9 @@ export default function AdminPostEditor({ editPostId }: AdminPostEditorProps) {
     }
     if (postType && postType !== 'standard') {
       formData.append('post_type', postType)
+    }
+    if (postType === 'video' && videoUrl.trim()) {
+      formData.append('video_url', videoUrl.trim())
     }
 
     // Multi-category support
@@ -891,6 +896,25 @@ export default function AdminPostEditor({ editPostId }: AdminPostEditorProps) {
                   <option value="gallery">Gallery</option>
                 </select>
               </div>
+
+              {/* Video URL — shown only when post type is video */}
+              {postType === 'video' && (
+                <div className="flex flex-col gap-2">
+                  <label className="font-medium text-gray-700 dark:text-gray-300">
+                    Video URL
+                  </label>
+                  <input
+                    type="url"
+                    value={videoUrl}
+                    onChange={(e) => setVideoUrl(e.target.value)}
+                    placeholder="https://www.youtube.com/watch?v=... or Dailymotion, Vimeo URL"
+                    className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                  />
+                  <p className="text-xs text-gray-500">
+                    Paste a video URL from YouTube, Dailymotion, Vimeo, or other supported platforms.
+                  </p>
+                </div>
+              )}
 
               <hr className="border-gray-200 dark:border-gray-700" />
 
